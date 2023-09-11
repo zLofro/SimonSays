@@ -1,2 +1,2 @@
-# PaperPluginTemplate
-Template with all the basics to start developing a PaperMC plugin.
+# SimonSays
+SimonSays plugin for a comission from MariaSantana.
