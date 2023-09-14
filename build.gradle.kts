@@ -16,12 +16,10 @@ java {
 
 
 repositories {
-    repositories {
-        maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
-    }
-    maven {
-        url = uri("https://repo.aikar.co/content/groups/aikar/")
-    }
+
+    maven { url = uri("https://repo.aikar.co/content/groups/aikar/") }
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
+    maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") }
 
     mavenCentral()
 }
@@ -36,10 +34,17 @@ dependencies {
     // Paper NMS.
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
 
+    // PlaceHolderAPi.
+    compileOnly("me.clip:placeholderapi:2.11.3")
+
     // ProjectLombok.
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
 
+    // SQLITE
+    compileOnly("org.xerial:sqlite-jdbc:3.43.0.0")
+
+    // Lombok
     testCompileOnly("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 }
@@ -66,9 +71,10 @@ tasks {
 }
 
 bukkit {
-    main = "vermillion.productions.Main"
+    main = "me.lofro.Main"
     version = "1.0"
     apiVersion = "1.19"
-    author = "VermillionTeam"
-    website = "https://vermillion.productions"
+    author = "Lofro"
+    website = "https://github.com/zLofro"
+    depend = listOf("PlaceholderApi")
 }

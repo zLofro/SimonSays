@@ -1,11 +1,11 @@
-package vermillion.productions.utils;
+package me.lofro.utils;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
-import vermillion.productions.Main;
+import me.lofro.Main;
 
 import javax.annotation.Nullable;
 

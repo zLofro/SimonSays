@@ -1,4 +1,4 @@
-package vermillion.productions.utils.item;
+package me.lofro.utils.item;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;

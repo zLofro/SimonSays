@@ -5,5 +5,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "PaperPluginTemplate"
+rootProject.name = "SimonSays"
 

@@ -1,4 +1,4 @@
-package vermillion.productions.utils;
+package me.lofro.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

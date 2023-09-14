@@ -1,4 +1,4 @@
-package vermillion.productions.utils.timer;
+package me.lofro.utils.timer;
 
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
@@ -11,8 +11,6 @@ import org.bukkit.Bukkit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import static vermillion.productions.utils.timer.GameTimer.getTimeString;
 
 /**
  * Simple and easy to use {@link  JTimer} adapted to Bukkit. Uses {@link BossBar} as output.
@@ -91,6 +89,6 @@ public class BukkitTimer extends JTimer {
     }
 
     private static String timeConvert(int t) {
-        return getTimeString(t);
+        return GameTimer.getTimeString(t);
     }
 }

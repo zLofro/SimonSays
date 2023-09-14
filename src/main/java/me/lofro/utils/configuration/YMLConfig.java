@@ -1,10 +1,10 @@
-package vermillion.productions.utils.configuration;
+package me.lofro.utils.configuration;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import vermillion.productions.Main;
+import me.lofro.Main;
 
 import java.io.File;
 import java.io.IOException;

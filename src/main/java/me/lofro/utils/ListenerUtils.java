@@ -1,10 +1,10 @@
-package vermillion.productions.utils;
+package me.lofro.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-import vermillion.productions.Main;
+import me.lofro.Main;
 
 public class ListenerUtils {
 

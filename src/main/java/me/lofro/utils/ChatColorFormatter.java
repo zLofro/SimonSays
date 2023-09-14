@@ -1,4 +1,4 @@
-package vermillion.productions.utils;
+package me.lofro.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;

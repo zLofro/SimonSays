@@ -1,4 +1,4 @@
-package vermillion.productions.utils.timer;
+package me.lofro.utils.timer;
 
 import lombok.Getter;
 import lombok.Setter;

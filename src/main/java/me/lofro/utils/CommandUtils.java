@@ -1,4 +1,4 @@
-package vermillion.productions.utils;
+package me.lofro.utils;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.PaperCommandManager;

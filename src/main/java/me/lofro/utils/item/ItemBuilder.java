@@ -1,5 +1,6 @@
-package vermillion.productions.utils.item;
+package me.lofro.utils.item;
 
+import me.lofro.utils.DataContainer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -15,8 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import vermillion.productions.utils.ChatColorFormatter;
-import vermillion.productions.utils.DataContainer;
+import me.lofro.utils.ChatColorFormatter;
 
 import java.util.Arrays;
 import java.util.List;
