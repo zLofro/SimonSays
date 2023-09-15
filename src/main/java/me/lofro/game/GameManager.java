@@ -18,7 +18,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GameManager {
 
@@ -34,9 +37,48 @@ public class GameManager {
 
     private @Getter int taskLaterID;
 
+    private @Getter List<Player> currentRoundParticipants = new ArrayList<>();
+
+    private int totalActionsThisRound = 0;
+
+    private int currentActionsThisRound = 0;
+
+    private boolean isMidRound = false;
+
     private final Location spawnLocation = new Location(Bukkit.getWorld(YMLConfig.getString("spawnWorldName")), YMLConfig.getInt("spawnX"), YMLConfig.getInt("spawnY"), YMLConfig.getInt("spawnZ"));
 
+    public boolean startRound() {
+        if (isMidRound) {
+            if (currentActionsThisRound >= totalActionsThisRound) {
+                stopRound();
+            } else {
+                startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], currentRoundParticipants.get(currentActionsThisRound));
+            }
+        } else {
+            this.currentRoundParticipants = getOnlineMembers();
+            this.totalActionsThisRound = currentRoundParticipants.size() - 1;
+            if (this.totalActionsThisRound < 0) return false;
+
+            this.isMidRound = true;
+
+            startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], currentRoundParticipants.get(currentActionsThisRound));
+        }
+
+        return true;
+    }
+
+    public void stopRound() {
+        endAction(false);
+
+        this.totalActionsThisRound = 0;
+        this.currentRoundParticipants = null;
+        this.currentActionsThisRound = 0;
+        this.isMidRound = false;
+    }
+
     public void startAction(Actions action, Player player) {
+        this.currentActionsThisRound++;
+
         this.currentAction = action;
         this.currentPlayer = player;
 
@@ -58,7 +100,7 @@ public class GameManager {
             if (!online.getUniqueId().equals(player.getUniqueId())) {
                 try {
                     var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
-                    if (!(role != null && role.equals("MEMBER"))) return;
+                    if (!(role != null && role.equals(Roles.MEMBER))) return;
                 } catch (SQLException e) {
                     Bukkit.getLogger().info(e.getMessage());
                     throw new RuntimeException(e);
@@ -83,7 +125,7 @@ public class GameManager {
             if (!online.getUniqueId().equals(currentPlayer.getUniqueId())) {
                 try {
                     var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
-                    if (!(role != null && role.equals("MEMBER"))) return;
+                    if (!(role != null && role.equals(Roles.MEMBER))) return;
                 } catch (SQLException e) {
                     Bukkit.getLogger().info(e.getMessage());
                     throw new RuntimeException(e);
@@ -95,13 +137,6 @@ public class GameManager {
         });
 
         var connection = Main.getInstance().getConnection();
-
-        try {
-            createPointsTable(connection);
-        } catch (SQLException e) {
-            Bukkit.getLogger().info(e.getMessage());
-            throw new RuntimeException(e);
-        }
 
         if (won) {
             try {
@@ -118,6 +153,7 @@ public class GameManager {
         }
 
         this.currentPlayer = null;
+        startRound();
     }
 
     public void setPoints(Connection connection, UUID playerUUID, int points) throws SQLException {
@@ -195,7 +231,7 @@ public class GameManager {
 
         var role = getRole(connection, uuid);
 
-        if (role != null && role.equals("STAFF")) return;
+        if (role != null && role.equals(Roles.STAFF)) return;
 
         var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
@@ -210,7 +246,7 @@ public class GameManager {
 
         var role = getRole(connection, uuid);
 
-        if (role != null && role.equals("STAFF")) {
+        if (role != null && role.equals(Roles.STAFF)) {
             var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
             preparedStatement.setString(1, uuid.toString());
@@ -225,7 +261,7 @@ public class GameManager {
 
         var role = getRole(connection, uuid);
 
-        if (role != null && role.equals("MEMBER")) return;
+        if (role != null && role.equals(Roles.MEMBER)) return;
 
         var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
@@ -240,7 +276,7 @@ public class GameManager {
 
         var role = getRole(connection, uuid);
 
-        if (role != null && role.equals("MEMBER")) {
+        if (role != null && role.equals(Roles.MEMBER)) {
 
             var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
@@ -251,7 +287,24 @@ public class GameManager {
         }
     }
 
-    public @Nullable String getRole(Connection connection, UUID uuid) throws SQLException {
+    public List<Player> getOnlineMembers() {
+        List<Player> onlineMembers = new ArrayList<>();
+
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            try {
+                var role = getRole(Main.getInstance().getConnection(), player.getUniqueId());
+                if (role != null && role.equals(Roles.MEMBER)) {
+                    onlineMembers.add(player);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return onlineMembers;
+    }
+
+    public @Nullable Roles getRole(Connection connection, UUID uuid) throws SQLException {
         createRoleTable(connection);
 
         PreparedStatement pointGetterStatement = connection.prepareStatement("SELECT PlayerRole FROM Roles WHERE PlayerUUID LIKE ?");
@@ -260,7 +313,9 @@ public class GameManager {
 
         ResultSet resultSet = pointGetterStatement.executeQuery();
 
-        return resultSet.getString(1);
+        var stringRole = resultSet.getString(1);
+
+        return stringRole == null ? null : Roles.valueOf(stringRole);
     }
 
     public void setRole(Connection connection, UUID uuid, Roles role) throws SQLException {
@@ -271,6 +326,10 @@ public class GameManager {
             removeMember(connection, uuid);
             addStaff(connection, uuid);
         }
+    }
+
+    public boolean isMidRound() {
+        return isMidRound;
     }
 
 }

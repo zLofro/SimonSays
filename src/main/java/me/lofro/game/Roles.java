@@ -1,5 +1,5 @@
 package me.lofro.game;
 
 public enum Roles {
-    MEMBER, STAFF;
+    MEMBER, STAFF
 }

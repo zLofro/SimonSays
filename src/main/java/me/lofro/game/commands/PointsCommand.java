@@ -58,29 +58,4 @@ public class PointsCommand extends BaseCommand {
         }
     }
 
-    @Subcommand("darRol")
-    private void setRole(CommandSender sender, @Flags("other") Player player, Roles role) {
-        try {
-            sender.sendMessage(ChatColorFormatter.stringToString("&aSe ha cambiado el rol del jugador " + player.getName() + "&a a " + role.name() + "&a."));
-            gameManager.setRole(connection, player.getUniqueId(), role);
-        } catch (SQLException e) {
-            Bukkit.getLogger().info(e.getMessage());
-            sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Subcommand("ubicación")
-    @CommandCompletion("@location")
-    private void setActionLocation(CommandSender sender, Actions action, Location location) {
-        try {
-            gameManager.setActionLocation(connection, action, location);
-            sender.sendMessage(ChatColorFormatter.stringToString("&aSe ha establecido la localización para la acción " + action.name() + "&a."));
-        } catch (SQLException e) {
-            Bukkit.getLogger().info(e.getMessage());
-            sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
-            throw new RuntimeException(e);
-        }
-    }
-
 }

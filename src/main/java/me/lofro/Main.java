@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import me.lofro.game.GameManager;
 import me.lofro.game.commands.PointsCommand;
+import me.lofro.game.commands.StaffCommand;
 import me.lofro.game.listeners.GameListeners;
 import me.lofro.utils.CommandUtils;
 import me.lofro.utils.ListenerUtils;
@@ -50,7 +51,7 @@ public class Main extends JavaPlugin {
 
         this.gameManager = new GameManager(new GameListeners());
 
-        CommandUtils.registerCommands(paperCommandManager, new PointsCommand(gameManager));
+        CommandUtils.registerCommands(paperCommandManager, new PointsCommand(gameManager), new StaffCommand(gameManager));
     }
 
     @Override
