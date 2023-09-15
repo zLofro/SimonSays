@@ -5,6 +5,7 @@ import me.lofro.Main;
 import me.lofro.game.listeners.GameListeners;
 import me.lofro.utils.ChatColorFormatter;
 import me.lofro.utils.ListenerUtils;
+import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -32,14 +34,24 @@ public class GameManager {
 
     private @Getter int taskLaterID;
 
+    private final Location spawnLocation = new Location(Bukkit.getWorld(YMLConfig.getString("spawnWorldName")), YMLConfig.getInt("spawnX"), YMLConfig.getInt("spawnY"), YMLConfig.getInt("spawnZ"));
+
     public void startAction(Actions action, Player player) {
         this.currentAction = action;
         this.currentPlayer = player;
 
         ListenerUtils.registerListener(gameListeners);
 
+        Location actionLocation;
+        try {
+            actionLocation = getActionLocation(Main.getInstance().getConnection(), action);
+        } catch (SQLException e) {
+            Bukkit.getLogger().info(e.getMessage());
+            throw new RuntimeException(e);
+        }
+
         player.setGameMode(GameMode.ADVENTURE);
-        player.teleport(action.getActionLocation());
+        player.teleport(actionLocation);
 
         Bukkit.getOnlinePlayers().forEach(online -> {
             online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(action.getSubtitle())));
@@ -53,7 +65,7 @@ public class GameManager {
                 }
 
                 FalseSpectator.addFalseSpectator(online);
-                online.teleport(action.getActionLocation());
+                online.teleport(actionLocation);
             }
         });
 
@@ -61,12 +73,12 @@ public class GameManager {
     }
 
     public void endAction(boolean won) {
-        this.currentAction = null;
-
         ListenerUtils.unregisterListener(gameListeners);
 
+        this.currentAction = null;
+
         currentPlayer.setGameMode(GameMode.ADVENTURE);
-        currentPlayer.teleport(new Location(Bukkit.getWorlds().get(0), 0, 0, 0)); //TODO UBICACION DEL SPAWN
+        currentPlayer.teleport(spawnLocation);
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (!online.getUniqueId().equals(currentPlayer.getUniqueId())) {
                 try {
@@ -78,7 +90,7 @@ public class GameManager {
                 }
 
                 FalseSpectator.removeFalseSpectator(online, GameMode.ADVENTURE);
-                online.teleport(new Location(Bukkit.getWorlds().get(0), 0, 0, 0)); //TODO UBICACION DEL SPAWN
+                online.teleport(spawnLocation);
             }
         });
 
@@ -96,13 +108,13 @@ public class GameManager {
                 var currentPlayerUUID = currentPlayer.getUniqueId();
                 setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
 
-                Bukkit.broadcast(ChatColorFormatter.stringToComponent("&aEl jugador " + currentPlayer.getName() + "&a ha conseguido +1 punto."));
+                Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
             } catch (SQLException e) {
                 Bukkit.getLogger().info(e.getMessage());
                 throw new RuntimeException(e);
             }
         } else {
-            Bukkit.broadcast(ChatColorFormatter.stringToComponent("&cNo se ha conseguido ningún punto."));
+            Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
         }
 
         this.currentPlayer = null;
@@ -140,6 +152,42 @@ public class GameManager {
         statement.execute("CREATE TABLE IF NOT EXISTS Roles(" +
                 "PlayerUUID VARCHAR(36) PRIMARY KEY," +
                 "PlayerRole VARCHAR(6));");
+    }
+
+    public void createLocationTable(Connection connection) throws SQLException {
+        var statement = connection.createStatement();
+        statement.execute("CREATE TABLE IF NOT EXISTS ActionLocations(" +
+                "ActionName VARCHAR(16) PRIMARY KEY," +
+                "WorldName VARCHAR(16))," +
+                "X INTEGER," +
+                "Y INTEGER," +
+                "Z INTEGER);");
+    }
+
+    public void setActionLocation(Connection connection, Actions action, Location location) throws SQLException {
+        createRoleTable(connection);
+
+        var preparedStatement = connection.prepareStatement("INSERT INTO ActionLocations(ActionName, WorldName, X, Y, Z) VALUES(?,?,?,?,?)");
+
+        preparedStatement.setString(1, action.name());
+        preparedStatement.setString(2, location.getWorld().getName());
+        preparedStatement.setInt(3, location.getBlockX());
+        preparedStatement.setInt(4, location.getBlockY());
+        preparedStatement.setInt(5, location.getBlockZ());
+
+        preparedStatement.executeUpdate();
+    }
+
+    public Location getActionLocation(Connection connection, Actions action) throws SQLException {
+        createLocationTable(connection);
+
+        var getActionLocationStatement = connection.prepareStatement("SELECT WorldName, X, Y, Z FROM ActionLocations WHERE ActionName LIKE ?");
+
+        getActionLocationStatement.setString(1, action.name());
+
+        ResultSet resultSet = getActionLocationStatement.executeQuery();
+
+        return new Location(Bukkit.getWorld(resultSet.getString(1)), resultSet.getInt(2), resultSet.getInt(3), resultSet.getInt(4));
     }
 
     public void addStaff(Connection connection, UUID uuid) throws SQLException {
@@ -206,10 +254,13 @@ public class GameManager {
     public @Nullable String getRole(Connection connection, UUID uuid) throws SQLException {
         createRoleTable(connection);
 
-        var pointGetterStatement = connection.createStatement();
-        ResultSet resultSet = pointGetterStatement.executeQuery("SELECT PlayerRole FROM Roles");
+        PreparedStatement pointGetterStatement = connection.prepareStatement("SELECT PlayerRole FROM Roles WHERE PlayerUUID LIKE ?");
 
-        return resultSet.getString(uuid.toString());
+        pointGetterStatement.setString(1, uuid.toString());
+
+        ResultSet resultSet = pointGetterStatement.executeQuery();
+
+        return resultSet.getString(1);
     }
 
     public void setRole(Connection connection, UUID uuid, Roles role) throws SQLException {

@@ -1,8 +1,12 @@
 package me.lofro;
 
+import co.aikar.commands.PaperCommandManager;
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import me.lofro.game.GameManager;
+import me.lofro.game.commands.PointsCommand;
 import me.lofro.game.listeners.GameListeners;
+import me.lofro.utils.CommandUtils;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
@@ -27,6 +31,11 @@ public class Main extends JavaPlugin {
         instance = this;
         ListenerUtils.registerListeners(new InteractionManager(), new FalseSpectator()); // Registra las interacciones.
 
+        PaperCommandManager paperCommandManager = new PaperCommandManager(this);
+
+        // Sets the location command completion.
+        paperCommandManager.getCommandCompletions().registerCompletion("@location", c -> ImmutableList.of("x,y,z"));
+
         var databaseURL = YMLConfig.getString("databaseLink");
 
         try {
@@ -40,6 +49,8 @@ public class Main extends JavaPlugin {
         }
 
         this.gameManager = new GameManager(new GameListeners());
+
+        CommandUtils.registerCommands(paperCommandManager, new PointsCommand(gameManager));
     }
 
     @Override

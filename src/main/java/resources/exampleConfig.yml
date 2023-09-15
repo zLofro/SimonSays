@@ -1,0 +1,5 @@
+databaseLink: "dataBase/database.db"
+spawnWorldName: "world"
+spawnX: 1
+spawnY: 10
+spawnZ: 5
