@@ -29,31 +29,31 @@ public class PointsCommand extends BaseCommand {
     }
 
     @Subcommand("añadir")
-    @CommandCompletion("puntos")
+    @CommandCompletion(" puntos")
     private void givePoints(CommandSender sender, @Flags("other") Player player, int points) {
         try {
             gameManager.createPointsTable(connection);
 
             var newPoints = gameManager.getPoints(connection, player.getUniqueId()) + points;
             gameManager.setPoints(connection, player.getUniqueId(), newPoints);
-            sender.sendMessage("&aSe le han añadido " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos.");
+            sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han añadido " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
         } catch (SQLException e) {
             Bukkit.getLogger().info(e.getMessage());
-            sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
+            sender.sendMessage(ChatColorFormatter.stringToString("&cHa habido un error al ejecutar el comando. Revisa la consola."));
             throw new RuntimeException(e);
         }
     }
 
     @Subcommand("eliminar")
-    @CommandCompletion("puntos")
+    @CommandCompletion(" puntos")
     private void removePoints(CommandSender sender, @Flags("other") Player player, int points) {
         try {
             var newPoints = gameManager.getPoints(connection, player.getUniqueId()) - points;
             gameManager.setPoints(connection, player.getUniqueId(), newPoints);
-            sender.sendMessage("&aSe le han eliminado " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos.");
+            sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han eliminado " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
         } catch (SQLException e) {
             Bukkit.getLogger().info(e.getMessage());
-            sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
+            sender.sendMessage(ChatColorFormatter.stringToString("&cHa habido un error al ejecutar el comando. Revisa la consola."));
             throw new RuntimeException(e);
         }
     }

@@ -222,10 +222,13 @@ public class GameManager {
     public int getPoints(Connection connection, UUID playerUUID) throws SQLException {
         createPointsTable(connection);
 
-        var pointGetterStatement = connection.createStatement();
-        ResultSet resultSet = pointGetterStatement.executeQuery("SELECT Points FROM Players");
+        var pointGetterStatement = connection.prepareStatement("SELECT Points FROM Players WHERE PlayerUUID LIKE ?");
+        pointGetterStatement.setString(1, playerUUID.toString());
+        ResultSet resultSet = pointGetterStatement.executeQuery();
 
-        return resultSet.getInt(playerUUID.toString());
+        if (!resultSet.next()) return 0;
+
+        return resultSet.getInt(1);
     }
 
     public void createPointsTable(Connection connection) throws SQLException {
