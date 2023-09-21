@@ -41,7 +41,7 @@ public class StaffCommand extends BaseCommand {
     }
 
     @Subcommand("ubicación")
-    @CommandCompletion("@location")
+    @CommandCompletion(" @location")
     private void setActionLocation(CommandSender sender, Actions action, Location location) {
         try {
             gameManager.setActionLocation(connection, action, location);
@@ -59,10 +59,10 @@ public class StaffCommand extends BaseCommand {
             sender.sendMessage(ChatColorFormatter.stringToString("&cYa hay una ronda iniciada."));
             return;
         }
-        if (gameManager.startRound()) {
+        if (!gameManager.getOnlineMembers().isEmpty()) {
+            gameManager.startRound();
             sender.sendMessage(ChatColorFormatter.stringToString("&a¡La ronda ha comenzado!"));
         } else {
-            gameManager.stopRound();
             sender.sendMessage(ChatColorFormatter.stringToString("&cNo hay jugadores suficientes para comenzar una ronda."));
         }
     }
@@ -70,10 +70,52 @@ public class StaffCommand extends BaseCommand {
     @Subcommand("acabarRonda")
     private void endRound(CommandSender sender) {
         if (gameManager.isMidRound()) {
-            gameManager.stopRound();
+            gameManager.stopRound(true);
             sender.sendMessage(ChatColorFormatter.stringToString("&aHas acabado la ronda activa."));
         } else {
             sender.sendMessage(ChatColorFormatter.stringToString("&cNo hay ninguna ronda activa."));
+        }
+    }
+
+    @Subcommand("añadirJugadorARonda")
+    private void addPlayerToRound(CommandSender sender, @Flags("other") Player player) {
+        if (gameManager.isMidRound()) {
+            try {
+                var playerRole = gameManager.getRole(connection, player.getUniqueId());
+                if (playerRole != null && playerRole.equals(Roles.MEMBER)) {
+                    if (gameManager.getCurrentRoundParticipants().contains(player.getUniqueId())) {
+                        sender.sendMessage(ChatColorFormatter.stringToString("&c¡El jugador que quieres añadir ya está en la ronda!"));
+                        return;
+                    }
+                    gameManager.getCurrentRoundParticipants().add(player.getUniqueId());
+                    sender.sendMessage(ChatColorFormatter.stringToString("&aEl jugador se ha añadido a la ronda."));
+                } else {
+                    sender.sendMessage(ChatColorFormatter.stringToString("&cEl jugador no tiene el rango de miembro."));
+                }
+            } catch (SQLException e) {
+                Bukkit.getLogger().info(e.getMessage());
+                sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
+                throw new RuntimeException(e);
+            }
+        } else {
+            sender.sendMessage(ChatColorFormatter.stringToString("&cNo puedes añadir a alguien a la ronda si no hay ronda activa."));
+        }
+    }
+
+    @Subcommand("eliminarJugadorDeRonda")
+    private void removePlayerFromRound(CommandSender sender, @Flags("other") Player player) {
+        if (gameManager.getCurrentPlayerUUID().equals(player.getUniqueId())) {
+            sender.sendMessage(ChatColorFormatter.stringToString("&cEl jugador que tratas de eliminar de la ronda está jugando una acción ahora mismo. Espera a que termine."));
+        }
+        if (gameManager.isMidRound()) {
+            if (!gameManager.getCurrentRoundParticipants().contains(player.getUniqueId())) {
+                sender.sendMessage(ChatColorFormatter.stringToString("&c¡El jugador que quieres eliminar no está en la ronda!"));
+                return;
+            }
+            gameManager.getCurrentRoundParticipants().remove(player.getUniqueId());
+            sender.sendMessage(ChatColorFormatter.stringToString("&aEl jugador se ha eliminado de la ronda."));
+        } else {
+            sender.sendMessage(ChatColorFormatter.stringToString("&cNo puedes eliminar a alguien a la ronda si no hay ronda activa."));
         }
     }
 

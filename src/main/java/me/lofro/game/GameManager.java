@@ -7,10 +7,13 @@ import me.lofro.utils.ChatColorFormatter;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
+import me.lofro.utils.item.ItemBuilder;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -33,11 +36,11 @@ public class GameManager {
 
     private @Getter Actions currentAction;
 
-    private @Getter Player currentPlayer;
+    private @Getter UUID currentPlayerUUID;
 
     private @Getter int taskLaterID;
 
-    private @Getter List<Player> currentRoundParticipants = new ArrayList<>();
+    private @Getter List<UUID> currentRoundParticipants = new ArrayList<>();
 
     private int totalActionsThisRound = 0;
 
@@ -47,29 +50,39 @@ public class GameManager {
 
     private final Location spawnLocation = new Location(Bukkit.getWorld(YMLConfig.getString("spawnWorldName")), YMLConfig.getInt("spawnX"), YMLConfig.getInt("spawnY"), YMLConfig.getInt("spawnZ"));
 
-    public boolean startRound() {
+    public void startRound() {
         if (isMidRound) {
             if (currentActionsThisRound >= totalActionsThisRound) {
-                stopRound();
+                stopRound(false);
             } else {
-                startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], currentRoundParticipants.get(currentActionsThisRound));
+                var player = Bukkit.getPlayer(currentRoundParticipants.get(currentActionsThisRound));
+                if (player == null) {
+                    currentActionsThisRound++;
+                    startRound();
+                    return;
+                }
+                startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], player);
             }
         } else {
             this.currentRoundParticipants = getOnlineMembers();
-            this.totalActionsThisRound = currentRoundParticipants.size() - 1;
-            if (this.totalActionsThisRound < 0) return false;
+            this.totalActionsThisRound = currentRoundParticipants.size();
+
+            var player = Bukkit.getPlayer(currentRoundParticipants.get(currentActionsThisRound));
+            if (player == null) {
+                currentActionsThisRound++;
+                startRound();
+                return;
+            }
 
             this.isMidRound = true;
 
-            startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], currentRoundParticipants.get(currentActionsThisRound));
+            startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], player);
         }
-
-        return true;
     }
 
-    public void stopRound() {
-        endAction(false);
-
+    public void stopRound(boolean commandMade) {
+        if (commandMade) endAction(false);
+        Bukkit.getScheduler().cancelTask(taskLaterID);
         this.totalActionsThisRound = 0;
         this.currentRoundParticipants = null;
         this.currentActionsThisRound = 0;
@@ -80,7 +93,7 @@ public class GameManager {
         this.currentActionsThisRound++;
 
         this.currentAction = action;
-        this.currentPlayer = player;
+        this.currentPlayerUUID = player.getUniqueId();
 
         ListenerUtils.registerListener(gameListeners);
 
@@ -94,6 +107,40 @@ public class GameManager {
 
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(actionLocation);
+
+        switch(action) {
+            case PAPER_ITEM_FRAME -> {
+                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(1, 5));
+                player.getInventory().addItem(customPaper.build());
+            }
+            case PAPER_ITEM_FRAME2 -> {
+                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(5, 8));
+                player.getInventory().addItem(customPaper.build());
+            }
+            case PAPER_ITEM_FRAME_SELECTION -> {
+                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(8, 13));
+                player.getInventory().addItem(customPaper.build());
+            }
+            case THREE_ITEM_FRAMES -> {
+                var customPaper1 = new ItemBuilder(Material.PAPER).setCustomModelData(17);
+                var customPaper2 = new ItemBuilder(Material.PAPER).setCustomModelData(18);
+                var customPaper3 = new ItemBuilder(Material.PAPER).setCustomModelData(19);
+
+                player.getInventory().addItem(customPaper1.build());
+                player.getInventory().addItem(customPaper2.build());
+                player.getInventory().addItem(customPaper3.build());
+            }
+            case PRESS_BUTTON -> {
+                var itemFrameWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
+
+                if (itemFrameWorld == null) throw new IllegalStateException("The itemFrameWorld cannot be null at this point.");
+
+                var itemFrameLoc = new Location(itemFrameWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
+                itemFrameWorld.getNearbyEntitiesByType(ItemFrame.class, itemFrameLoc, 1).forEach(itemFrame -> {
+                    itemFrame.setItem(new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(20, 22)).build());
+                });
+            }
+        }
 
         Bukkit.getOnlinePlayers().forEach(online -> {
             online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(action.getSubtitle())));
@@ -111,18 +158,18 @@ public class GameManager {
             }
         });
 
-        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false), action.getTimeLimit() * 20L).getTaskId();
+        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
     }
 
     public void endAction(boolean won) {
         ListenerUtils.unregisterListener(gameListeners);
 
-        this.currentAction = null;
+        var currentPlayer = Bukkit.getPlayer(currentPlayerUUID);
 
-        currentPlayer.setGameMode(GameMode.ADVENTURE);
-        currentPlayer.teleport(spawnLocation);
+        var connection = Main.getInstance().getConnection();
+
         Bukkit.getOnlinePlayers().forEach(online -> {
-            if (!online.getUniqueId().equals(currentPlayer.getUniqueId())) {
+            if (!online.getUniqueId().equals(currentPlayerUUID)) {
                 try {
                     var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
                     if (!(role != null && role.equals(Roles.MEMBER))) return;
@@ -136,30 +183,35 @@ public class GameManager {
             }
         });
 
-        var connection = Main.getInstance().getConnection();
+        if (currentPlayer != null) {
+            currentPlayer.setGameMode(GameMode.ADVENTURE);
+            currentPlayer.teleport(spawnLocation);
 
-        if (won) {
-            try {
-                var currentPlayerUUID = currentPlayer.getUniqueId();
-                setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
+            currentPlayer.getInventory().clear();
 
-                Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
-            } catch (SQLException e) {
-                Bukkit.getLogger().info(e.getMessage());
-                throw new RuntimeException(e);
+            if (won) {
+                try {
+                    setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
+
+                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
+                } catch (SQLException e) {
+                    Bukkit.getLogger().info(e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            } else {
+                Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
             }
-        } else {
-            Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
         }
 
-        this.currentPlayer = null;
+        this.currentAction = null;
+        this.currentPlayerUUID = null;
         startRound();
     }
 
     public void setPoints(Connection connection, UUID playerUUID, int points) throws SQLException {
         createPointsTable(connection);
 
-        var preparedStatement = connection.prepareStatement("INSERT INTO Players(PlayerUUID, Points) VALUES(?,?)");
+        var preparedStatement = connection.prepareStatement("INSERT OR REPLACE INTO Players(PlayerUUID, Points) VALUES(?,?)");
 
         preparedStatement.setString(1, playerUUID.toString());
         preparedStatement.setInt(2, points);
@@ -192,26 +244,26 @@ public class GameManager {
 
     public void createLocationTable(Connection connection) throws SQLException {
         var statement = connection.createStatement();
-        statement.execute("CREATE TABLE IF NOT EXISTS ActionLocations(" +
+        statement.execute("CREATE TABLE IF NOT EXISTS ActionLocations (" +
                 "ActionName VARCHAR(16) PRIMARY KEY," +
-                "WorldName VARCHAR(16))," +
+                "WorldName VARCHAR(16)," +
                 "X INTEGER," +
                 "Y INTEGER," +
                 "Z INTEGER);");
     }
 
     public void setActionLocation(Connection connection, Actions action, Location location) throws SQLException {
-        createRoleTable(connection);
+        createLocationTable(connection);
 
-        var preparedStatement = connection.prepareStatement("INSERT INTO ActionLocations(ActionName, WorldName, X, Y, Z) VALUES(?,?,?,?,?)");
+        var setDataStatement = connection.prepareStatement("INSERT OR REPLACE INTO ActionLocations(ActionName, WorldName, X, Y, Z) VALUES(?,?,?,?,?)");
 
-        preparedStatement.setString(1, action.name());
-        preparedStatement.setString(2, location.getWorld().getName());
-        preparedStatement.setInt(3, location.getBlockX());
-        preparedStatement.setInt(4, location.getBlockY());
-        preparedStatement.setInt(5, location.getBlockZ());
+        setDataStatement.setString(1, action.name());
+        setDataStatement.setString(2, location.getWorld().getName());
+        setDataStatement.setInt(3, location.getBlockX());
+        setDataStatement.setInt(4, location.getBlockY());
+        setDataStatement.setInt(5, location.getBlockZ());
 
-        preparedStatement.executeUpdate();
+        setDataStatement.executeUpdate();
     }
 
     public Location getActionLocation(Connection connection, Actions action) throws SQLException {
@@ -233,7 +285,7 @@ public class GameManager {
 
         if (role != null && role.equals(Roles.STAFF)) return;
 
-        var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
+        var preparedStatement = connection.prepareStatement("INSERT OR REPLACE INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
         preparedStatement.setString(1, uuid.toString());
         preparedStatement.setString(2, "STAFF");
@@ -247,7 +299,7 @@ public class GameManager {
         var role = getRole(connection, uuid);
 
         if (role != null && role.equals(Roles.STAFF)) {
-            var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
+            var preparedStatement = connection.prepareStatement("INSERT OR REPLACE INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
             preparedStatement.setString(1, uuid.toString());
             preparedStatement.setString(2, null);
@@ -263,7 +315,7 @@ public class GameManager {
 
         if (role != null && role.equals(Roles.MEMBER)) return;
 
-        var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
+        var preparedStatement = connection.prepareStatement("INSERT OR REPLACE INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
         preparedStatement.setString(1, uuid.toString());
         preparedStatement.setString(2, "MEMBER");
@@ -278,7 +330,7 @@ public class GameManager {
 
         if (role != null && role.equals(Roles.MEMBER)) {
 
-            var preparedStatement = connection.prepareStatement("INSERT INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
+            var preparedStatement = connection.prepareStatement("INSERT OR REPLACE INTO Roles(PlayerUUID, PlayerRole) VALUES(?,?)");
 
             preparedStatement.setString(1, uuid.toString());
             preparedStatement.setString(2, null);
@@ -287,14 +339,14 @@ public class GameManager {
         }
     }
 
-    public List<Player> getOnlineMembers() {
-        List<Player> onlineMembers = new ArrayList<>();
+    public List<UUID> getOnlineMembers() {
+        List<UUID> onlineMembers = new ArrayList<>();
 
         Bukkit.getOnlinePlayers().forEach(player -> {
             try {
                 var role = getRole(Main.getInstance().getConnection(), player.getUniqueId());
                 if (role != null && role.equals(Roles.MEMBER)) {
-                    onlineMembers.add(player);
+                    onlineMembers.add(player.getUniqueId());
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);

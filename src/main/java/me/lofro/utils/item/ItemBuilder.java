@@ -59,6 +59,11 @@ public class ItemBuilder {
         return this;
     }
 
+    public int getCustomModelData() {
+        this.im = this.is.getItemMeta();
+        return this.im.getCustomModelData();
+    }
+
     public ItemBuilder setID(String id) {
         this.im = this.is.getItemMeta();
         this.im.getPersistentDataContainer().set(DataContainer.key(id), PersistentDataType.BYTE, (byte) 1);

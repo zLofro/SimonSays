@@ -7,6 +7,7 @@ import me.lofro.game.GameManager;
 import me.lofro.game.commands.PointsCommand;
 import me.lofro.game.commands.StaffCommand;
 import me.lofro.game.listeners.GameListeners;
+import me.lofro.utils.ChatColorFormatter;
 import me.lofro.utils.CommandUtils;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
@@ -30,6 +31,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        YMLConfig.load();
+
         ListenerUtils.registerListeners(new InteractionManager(), new FalseSpectator()); // Registra las interacciones.
 
         PaperCommandManager paperCommandManager = new PaperCommandManager(this);
@@ -42,10 +46,10 @@ public class Main extends JavaPlugin {
         try {
             Class.forName("org.sqlite.JDBC");
             this.connection = DriverManager.getConnection(databaseURL);
-            Bukkit.getLogger().info("&aLa base de datos se ha conectado correctamente.");
+            Bukkit.getLogger().info(ChatColorFormatter.stringToString("&aLa base de datos se ha conectado correctamente."));
         } catch (SQLException | ClassNotFoundException e) {
             Bukkit.getLogger().info(e.getMessage());
-            Bukkit.getLogger().info("&cLa base de datos no se ha podido conectar correctamente.");
+            Bukkit.getLogger().info(ChatColorFormatter.stringToString("&cLa base de datos no se ha podido conectar correctamente."));
             throw new RuntimeException(e);
         }
 
@@ -59,10 +63,10 @@ public class Main extends JavaPlugin {
         if (this.connection != null) {
             try {
                 this.connection.close();
-                Bukkit.getLogger().info("&aLa base de datos se ha desconectado correctamente.");
+                Bukkit.getLogger().info(ChatColorFormatter.stringToString("&aLa base de datos se ha desconectado correctamente."));
             } catch (SQLException e) {
                 Bukkit.getLogger().info(e.getMessage());
-                Bukkit.getLogger().info("&cLa base de datos no se ha desconectado correctamente.");
+                Bukkit.getLogger().info(ChatColorFormatter.stringToString("&cLa base de datos no se ha desconectado correctamente."));
                 throw new RuntimeException(e);
             }
         }

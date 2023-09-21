@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     // Paper.
-    paperDevBundle("1.19.3-R0.1-SNAPSHOT")
+    paperDevBundle("1.19.4-R0.1-SNAPSHOT")
 
     // Bukkit.
     implementation("net.kyori:adventure-platform-bukkit:4.1.2")
@@ -76,5 +76,4 @@ bukkit {
     apiVersion = "1.19"
     author = "Lofro"
     website = "https://github.com/zLofro"
-    depend = listOf("PlaceholderApi")
 }
