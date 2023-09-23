@@ -11,8 +11,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -35,7 +38,7 @@ public class FalseSpectator implements Listener {
     }
 
     public static void removeFalseSpectator(Player player, GameMode nextGamemode) {
-        falseSpectators.add(player.getUniqueId());
+        falseSpectators.remove(player.getUniqueId());
         player.setGameMode(nextGamemode);
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (!online.getUniqueId().equals(player.getUniqueId())) online.showPlayer(Main.getInstance(), player);
@@ -49,7 +52,25 @@ public class FalseSpectator implements Listener {
     }
 
     @EventHandler
+    private void onDamageByEntity(EntityDamageByEntityEvent event) {
+         if (event.getDamager() instanceof Player player) {
+             if (falseSpectators.contains(player.getUniqueId())) event.setCancelled(true);
+         }
+    }
+
+    @EventHandler
+    private void onCreative(InventoryCreativeEvent event)  {
+         if (falseSpectators.contains(event.getWhoClicked().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler
     private void onInteract(PlayerInteractEvent event) {
+        var player = event.getPlayer();
+        if (falseSpectators.contains(player.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler
+    private void onInteractAtEntity(PlayerInteractAtEntityEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.contains(player.getUniqueId())) event.setCancelled(true);
     }

@@ -12,7 +12,6 @@ import me.lofro.utils.CommandUtils;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
-import me.lofro.utils.item.InteractionManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,9 +33,9 @@ public class Main extends JavaPlugin {
 
         YMLConfig.load();
 
-        ListenerUtils.registerListeners(new InteractionManager(), new FalseSpectator()); // Registra las interacciones.
-
         PaperCommandManager paperCommandManager = new PaperCommandManager(this);
+
+        ListenerUtils.registerListener(new FalseSpectator());
 
         // Sets the location command completion.
         paperCommandManager.getCommandCompletions().registerCompletion("@location", c -> ImmutableList.of("x,y,z"));

@@ -12,6 +12,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -39,8 +40,8 @@ public class GameListeners implements Listener {
                         if (itemInMainHand.getType().equals(Material.AIR) && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 1, 2, 3, 4 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -48,8 +49,8 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && itemInOffHand.getType().equals(Material.AIR)) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 1, 2, 3, 4 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -57,15 +58,15 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 1, 2, 3, 4 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 1, 2, 3, 4 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                 }
                             }
                         }
@@ -83,8 +84,8 @@ public class GameListeners implements Listener {
                         if (itemInMainHand.getType().equals(Material.AIR) && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 5, 6, 7 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -92,8 +93,8 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && itemInOffHand.getType().equals(Material.AIR)) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 5, 6, 7 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -101,15 +102,15 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 5, 6, 7 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 5, 6, 7 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                 }
                             }
                         }
@@ -127,8 +128,8 @@ public class GameListeners implements Listener {
                         if (itemInMainHand.getType().equals(Material.AIR) && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 8, 9, 10, 11, 12 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -136,8 +137,8 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && itemInOffHand.getType().equals(Material.AIR)) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 8, 9, 10, 11, 12 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
@@ -145,29 +146,30 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 8, 9, 10, 11, 12 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                     return;
                                 }
                             }
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 8, 9, 10, 11, 12 -> {
-                                    gameManager.endAction(true);
-                                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                    gameManager.endAction(true, false);
+                                    itemFrame.setItem(null);
                                 }
                             }
                         }
                     }
                 } else if (gameManager.getCurrentAction().equals(Actions.THREE_ITEM_FRAMES)) {
-                    if (itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_X")
+                    if ((itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_X")
                             && itemFrame.getLocation().getBlockY() == YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Y")
-                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Z")
-                            || itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X")
+                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Z"))
+                            || (itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X")
                             && itemFrame.getLocation().getBlockY() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Y")
-                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z")
-                            || itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X")
-                            && itemFrame.getLocation().getBlockY() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Y")
-                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z")) {
+                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z"))
+                            || (itemFrame.getLocation().getBlockX() == YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_X")
+                            && itemFrame.getLocation().getBlockY() == YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Y")
+                            && itemFrame.getLocation().getBlockZ() == YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Z"))) {
+
                         var itemInMainHand = player.getInventory().getItemInMainHand();
                         var itemInOffHand = player.getInventory().getItemInOffHand();
 
@@ -177,16 +179,17 @@ public class GameListeners implements Listener {
                         if (itemInMainHand.getType().equals(Material.AIR) && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 17, 18, 19 -> {
-                                    if (itemFrame.getItem().getType().equals(Material.AIR)) return;
+                                    if (!itemFrame.getItem().getType().equals(Material.AIR)) return;
                                     var framedItems = DataContainer.get(player, "framedItems", PersistentDataType.BYTE);
 
                                     if (framedItems == null) {
                                         DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 1);
                                     } else {
-                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, Byte.valueOf(String.valueOf(framedItems + 1)));
-                                        if (framedItems + 1 >= 3) {
-                                            gameManager.endAction(true);
-                                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                        var framedItemsCount = ((byte)(framedItems + 1));
+                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, framedItemsCount);
+                                        if (framedItemsCount >= (byte) 3) {
+                                            gameManager.endAction(true, false);
+                                            itemFrame.setItem(null);
                                             DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 0);
                                             return;
                                         }
@@ -198,16 +201,17 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && itemInOffHand.getType().equals(Material.AIR)) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 17, 18, 19 -> {
-                                    if (itemFrame.getItem().getType().equals(Material.AIR)) return;
+                                    if (!itemFrame.getItem().getType().equals(Material.AIR)) return;
                                     var framedItems = DataContainer.get(player, "framedItems", PersistentDataType.BYTE);
 
                                     if (framedItems == null) {
                                         DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 1);
                                     } else {
-                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, Byte.valueOf(String.valueOf(framedItems + 1)));
-                                        if (framedItems + 1 >= 3) {
-                                            gameManager.endAction(true);
-                                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                        var framedItemsCount = ((byte)(framedItems + 1));
+                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, framedItemsCount);
+                                        if (framedItemsCount >= (byte) 3) {
+                                            gameManager.endAction(true, false);
+                                            itemFrame.setItem(null);
                                             DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 0);
                                             return;
                                         }
@@ -219,16 +223,17 @@ public class GameListeners implements Listener {
                         if (!itemInMainHand.getType().equals(Material.AIR) && itemInMainHand.hasItemMeta() && !itemInOffHand.getType().equals(Material.AIR) && itemInOffHand.hasItemMeta()) {
                             switch (itemInMainHandIB.getCustomModelData()) {
                                 case 17, 18, 19 -> {
-                                    if (itemFrame.getItem().getType().equals(Material.AIR)) return;
+                                    if (!itemFrame.getItem().getType().equals(Material.AIR)) return;
                                     var framedItems = DataContainer.get(player, "framedItems", PersistentDataType.BYTE);
 
                                     if (framedItems == null) {
                                         DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 1);
                                     } else {
-                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, Byte.valueOf(String.valueOf(framedItems + 1)));
-                                        if (framedItems + 1 >= 3) {
-                                            gameManager.endAction(true);
-                                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                        var framedItemsCount = ((byte)(framedItems + 1));
+                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, framedItemsCount);
+                                        if (framedItemsCount >= (byte) 3) {
+                                            gameManager.endAction(true, false);
+                                            itemFrame.setItem(null);
                                             DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 0);
                                             return;
                                         }
@@ -238,16 +243,17 @@ public class GameListeners implements Listener {
                             }
                             switch (itemInOffHandIB.getCustomModelData()) {
                                 case 17, 18, 19 -> {
-                                    if (itemFrame.getItem().getType().equals(Material.AIR)) return;
+                                    if (!itemFrame.getItem().getType().equals(Material.AIR)) return;
                                     var framedItems = DataContainer.get(player, "framedItems", PersistentDataType.BYTE);
 
                                     if (framedItems == null) {
                                         DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 1);
                                     } else {
-                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, Byte.valueOf(String.valueOf(framedItems + 1)));
-                                        if (framedItems + 1 >= 3) {
-                                            gameManager.endAction(true);
-                                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                                        var framedItemsCount = ((byte)(framedItems + 1));
+                                        DataContainer.set(player, "framedItems", PersistentDataType.BYTE, framedItemsCount);
+                                        if (framedItemsCount >= (byte) 3) {
+                                            gameManager.endAction(true, false);
+                                            itemFrame.setItem(null);
                                             DataContainer.set(player, "framedItems", PersistentDataType.BYTE, (byte) 0);
                                         }
                                     }
@@ -271,6 +277,7 @@ public class GameListeners implements Listener {
             if (gameManager.getCurrentAction().equals(Actions.PRESS_BUTTON)) {
                 var clickedBlock = event.getClickedBlock();
                 if (clickedBlock == null) return;
+                if (!clickedBlock.getType().equals(Material.STONE_BUTTON)) return;
                 if (clickedBlock.getLocation().getBlockX() == YMLConfig.getInt("PRESS_BUTTON_BUTTON_X")
                         && clickedBlock.getLocation().getBlockY() == YMLConfig.getInt("PRESS_BUTTON_BUTTON_Y")
                         && clickedBlock.getLocation().getBlockZ() == YMLConfig.getInt("PRESS_BUTTON_BUTTON_Z")) {
@@ -279,16 +286,20 @@ public class GameListeners implements Listener {
                     if (itemFrameWorld == null) throw new IllegalStateException("The itemFrameWorld cannot be null at this point.");
 
                     var itemFrameLoc = new Location(itemFrameWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
-                    itemFrameWorld.getNearbyEntitiesByType(ItemFrame.class, itemFrameLoc, 1).forEach(itemFrame -> {
-                        var itemFrameItem = itemFrame.getItem();
-                        if (itemFrameItem.hasItemMeta() && new ItemBuilder(itemFrameItem).getCustomModelData() == 20) {
-                            gameManager.endAction(true);
-                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> itemFrame.setItem(null), 60);
+                    itemFrameLoc.getNearbyEntities(2, 2, 2).forEach(entity -> {
+                        if (entity instanceof ItemFrame itemFrame) {
+                            var itemFrameItem = itemFrame.getItem();
+                            gameManager.endAction(itemFrameItem.hasItemMeta() && new ItemBuilder(itemFrameItem).getCustomModelData() == 20, false);
                         }
                     });
                 }
             }
         }
+    }
+
+    @EventHandler
+    private void onHangingBreak(HangingBreakEvent event) {
+        if (event.getEntity() instanceof ItemFrame && Main.getInstance().getGameManager().isMidRound()) event.setCancelled(true);
     }
 
 }

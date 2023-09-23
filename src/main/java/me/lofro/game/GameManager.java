@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.lofro.Main;
 import me.lofro.game.listeners.GameListeners;
 import me.lofro.utils.ChatColorFormatter;
+import me.lofro.utils.DataContainer;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
@@ -15,6 +16,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
 import java.sql.Connection;
@@ -81,12 +83,13 @@ public class GameManager {
     }
 
     public void stopRound(boolean commandMade) {
-        if (commandMade) endAction(false);
-        Bukkit.getScheduler().cancelTask(taskLaterID);
+        Bukkit.getScheduler().cancelTask(this.taskLaterID);
+        if (commandMade) endAction(false, true);
+        this.currentRoundParticipants.clear();
         this.totalActionsThisRound = 0;
-        this.currentRoundParticipants = null;
         this.currentActionsThisRound = 0;
         this.isMidRound = false;
+        this.taskLaterID = 0;
     }
 
     public void startAction(Actions action, Player player) {
@@ -107,6 +110,22 @@ public class GameManager {
 
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(actionLocation);
+
+        Bukkit.getOnlinePlayers().forEach(online -> {
+            online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(action.getSubtitle())));
+                    if (!online.getUniqueId().equals(player.getUniqueId())) {
+                        try {
+                            var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
+                            if (!(role != null && role.equals(Roles.MEMBER))) return;
+                        } catch (SQLException e) {
+                            Bukkit.getLogger().info(e.getMessage());
+                    throw new RuntimeException(e);
+                }
+
+                FalseSpectator.addFalseSpectator(online);
+                online.teleport(actionLocation);
+            }
+        });
 
         switch(action) {
             case PAPER_ITEM_FRAME -> {
@@ -130,38 +149,29 @@ public class GameManager {
                 player.getInventory().addItem(customPaper2.build());
                 player.getInventory().addItem(customPaper3.build());
             }
-            case PRESS_BUTTON -> {
+            case PRESS_BUTTON -> Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 var itemFrameWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
 
                 if (itemFrameWorld == null) throw new IllegalStateException("The itemFrameWorld cannot be null at this point.");
 
                 var itemFrameLoc = new Location(itemFrameWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
-                itemFrameWorld.getNearbyEntitiesByType(ItemFrame.class, itemFrameLoc, 1).forEach(itemFrame -> {
-                    itemFrame.setItem(new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(20, 22)).build());
+                var itemFrames = itemFrameLoc.getNearbyEntities(2, 2, 2);
+
+                itemFrames.forEach(entity -> {
+                    if (entity instanceof ItemFrame itemFrame) {
+                        var item = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(20, 22)).build();
+                        itemFrame.setItem(item);
+                    }
                 });
-            }
+            }, 5);
         }
 
-        Bukkit.getOnlinePlayers().forEach(online -> {
-            online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(action.getSubtitle())));
-            if (!online.getUniqueId().equals(player.getUniqueId())) {
-                try {
-                    var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
-                    if (!(role != null && role.equals(Roles.MEMBER))) return;
-                } catch (SQLException e) {
-                    Bukkit.getLogger().info(e.getMessage());
-                    throw new RuntimeException(e);
-                }
-
-                FalseSpectator.addFalseSpectator(online);
-                online.teleport(actionLocation);
-            }
-        });
-
-        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
+        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
     }
 
-    public void endAction(boolean won) {
+    public void endAction(boolean won, boolean commandMade) {
+        Bukkit.getScheduler().cancelTask(this.taskLaterID);
+
         ListenerUtils.unregisterListener(gameListeners);
 
         var currentPlayer = Bukkit.getPlayer(currentPlayerUUID);
@@ -174,7 +184,6 @@ public class GameManager {
                     var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
                     if (!(role != null && role.equals(Roles.MEMBER))) return;
                 } catch (SQLException e) {
-                    Bukkit.getLogger().info(e.getMessage());
                     throw new RuntimeException(e);
                 }
 
@@ -182,6 +191,40 @@ public class GameManager {
                 online.teleport(spawnLocation);
             }
         });
+
+        switch(currentAction) {
+            case THREE_ITEM_FRAMES -> {
+                var commonWorld = Bukkit.getWorld(YMLConfig.getString("THREE_ITEM_FRAMES_COMMON_LOC_WORLD_NAME"));
+
+                var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Z"));
+                var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z"));
+                var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Z"));
+
+                firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+
+                DataContainer.set(currentPlayer, "framedItems", PersistentDataType.BYTE, (byte) 0);
+            }
+            case PRESS_BUTTON -> {
+                var commonWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
+
+                var itemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
+
+                itemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+            }
+            case PAPER_ITEM_FRAME_SELECTION -> {
+                var commonWorld = Bukkit.getWorld(YMLConfig.getString("PAPER_ITEM_FRAME_SELECTION_COMMON_LOC_WORLD_NAME"));
+
+                var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Z"));
+                var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Z"));
+                var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Z"));
+
+                firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+            }
+        }
 
         if (currentPlayer != null) {
             currentPlayer.setGameMode(GameMode.ADVENTURE);
@@ -205,7 +248,7 @@ public class GameManager {
 
         this.currentAction = null;
         this.currentPlayerUUID = null;
-        startRound();
+        if (!commandMade) startRound();
     }
 
     public void setPoints(Connection connection, UUID playerUUID, int points) throws SQLException {
