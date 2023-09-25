@@ -185,5 +185,7 @@ FLOOR_IS_LAVA_SECOND_CORNER_X: 1
 FLOOR_IS_LAVA_SECOND_CORNER_Y: 2
 FLOOR_IS_LAVA_SECOND_CORNER_Z: 3
 #MENSAJES
-correctBlockAnnounceMessage: ""
-correctPressurePlateMessage: ""
+correctBlockAnnounceMessage: "&aEL BLOQUE CORRECTO ES "
+correctPressurePlateMessage: "&aLA PLACA DE PRESION CORRECTA ES "
+noPointsMessage: "&cNo se han obtenido puntos."
+winPointsMessage: "&a{jugador} ha conseguido +1 punto." #{jugador} será remplazado por el nombre del jugador automaticamente.

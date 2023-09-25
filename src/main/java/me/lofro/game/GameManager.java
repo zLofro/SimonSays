@@ -333,13 +333,13 @@ public class GameManager {
                     try {
                         setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
 
-                        Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
+                        Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("winPointsMessage").replace("{jugador}", currentPlayer.getName())), ChatColorFormatter.stringToComponent(""))));
                     } catch (SQLException e) {
                         Bukkit.getLogger().info(e.getMessage());
                         throw new RuntimeException(e);
                     }
                 } else {
-                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
+                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("noPointsMessage")), ChatColorFormatter.stringToComponent(""))));
                 }
             }
 
