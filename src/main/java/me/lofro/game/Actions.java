@@ -9,7 +9,6 @@ public enum Actions {
     PAPER_ITEM_FRAME2(),
     PAPER_ITEM_FRAME_SELECTION(),
     BUTTON_MOVEMENT(),
-    ITEM_CATCH(),
     PRESSURE_PLATE(),
     THREE_ITEM_FRAMES(),
     PRESS_BUTTON(),

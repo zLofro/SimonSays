@@ -6,6 +6,7 @@ import me.lofro.game.listeners.GameListeners;
 import me.lofro.utils.ChatColorFormatter;
 import me.lofro.utils.DataContainer;
 import me.lofro.utils.ListenerUtils;
+import me.lofro.utils.Locations;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
 import me.lofro.utils.item.ItemBuilder;
@@ -14,9 +15,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.sql.Connection;
@@ -52,6 +56,18 @@ public class GameManager {
 
     private final Location spawnLocation = new Location(Bukkit.getWorld(YMLConfig.getString("spawnWorldName")), YMLConfig.getInt("spawnX"), YMLConfig.getInt("spawnY"), YMLConfig.getInt("spawnZ"));
 
+    private @Getter List<String> pressureTypesShuffle = new ArrayList<>();
+
+    private @Getter String pressurePlateType = "";
+
+    private @Getter List<Location> colorBlocksLocations = new ArrayList<>();
+
+    private @Getter Material correctColorType = null;
+
+    private @Getter int buttonTaskID = 0;
+
+    private @Getter int currentButtonIndex = 0;
+
     public void startRound() {
         if (isMidRound) {
             if (currentActionsThisRound >= totalActionsThisRound) {
@@ -84,7 +100,7 @@ public class GameManager {
 
     public void stopRound(boolean commandMade) {
         Bukkit.getScheduler().cancelTask(this.taskLaterID);
-        if (commandMade) endAction(false, true);
+        if (commandMade) endAction(false, true, false);
         this.currentRoundParticipants.clear();
         this.totalActionsThisRound = 0;
         this.currentActionsThisRound = 0;
@@ -92,7 +108,7 @@ public class GameManager {
         this.taskLaterID = 0;
     }
 
-    public void startAction(Actions action, Player player) {
+    public void startAction(@NotNull Actions action, Player player) {
         this.currentActionsThisRound++;
 
         this.currentAction = action;
@@ -111,21 +127,7 @@ public class GameManager {
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(actionLocation);
 
-        Bukkit.getOnlinePlayers().forEach(online -> {
-            online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(action.getSubtitle())));
-                    if (!online.getUniqueId().equals(player.getUniqueId())) {
-                        try {
-                            var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
-                            if (!(role != null && role.equals(Roles.MEMBER))) return;
-                        } catch (SQLException e) {
-                            Bukkit.getLogger().info(e.getMessage());
-                    throw new RuntimeException(e);
-                }
-
-                FalseSpectator.addFalseSpectator(online);
-                online.teleport(actionLocation);
-            }
-        });
+        Bukkit.getLogger().info(action.name());
 
         switch(action) {
             case PAPER_ITEM_FRAME -> {
@@ -164,91 +166,201 @@ public class GameManager {
                     }
                 });
             }, 5);
+            case PRESSURE_PLATE -> {
+                this.pressureTypesShuffle = new ArrayList<>(List.of("OAK", "JUNGLE", "BIRCH"));
+                var randomNumber = ThreadLocalRandom.current().nextInt(0, 3);
+                this.pressurePlateType = pressureTypesShuffle.get(randomNumber);
+                pressureTypesShuffle.remove(randomNumber);
+            }
+            case FLOOR_IS_LAVA -> {
+                var commonWorld = Bukkit.getWorld(YMLConfig.getString("FLOOR_IS_LAVA_COMMON_LOC_WORLD_NAME"));
+
+                if (commonWorld == null) throw new IllegalStateException("The common world is null. It MUSTN'T be null at this point.");
+
+                var firstCornerLoc = new Location(commonWorld, YMLConfig.getInt("FLOOR_IS_LAVA_FIRST_CORNER_X"), YMLConfig.getInt("FLOOR_IS_LAVA_FIRST_CORNER_Y"), YMLConfig.getInt("FLOOR_IS_LAVA_FIRST_CORNER_Z"));
+                var secondCornerLoc = new Location(commonWorld, YMLConfig.getInt("FLOOR_IS_LAVA_SECOND_CORNER_X"), YMLConfig.getInt("FLOOR_IS_LAVA_SECOND_CORNER_Y"), YMLConfig.getInt("FLOOR_IS_LAVA_SECOND_CORNER_Z"));
+
+                this.colorBlocksLocations = Locations.getBlocksInsideCube(firstCornerLoc, secondCornerLoc);
+
+                List<Material> pickedTypes = new ArrayList<>();
+
+                colorBlocksLocations.forEach(blockPos -> {
+                    var type = this.concreteMaterials.get(ThreadLocalRandom.current().nextInt(0, concreteMaterials.size()));
+                    blockPos.getBlock().setType(type);
+                    if (!pickedTypes.contains(type)) pickedTypes.add(type);
+                });
+
+                this.correctColorType = pickedTypes.get(ThreadLocalRandom.current().nextInt(0, pickedTypes.size()));
+            }
+            case BUTTON_MOVEMENT -> {
+                var commonWorld = Bukkit.getWorld(YMLConfig.getString("BUTTON_MOVEMENT_COMMON_LOC_WORLD_NAME"));
+
+                if (commonWorld == null) throw new IllegalStateException("The common world is null. It MUSTN'T be null at this point.");
+
+                this.buttonTaskID = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+                    var oldButtonIndex = currentButtonIndex;
+
+                    var aux = currentButtonIndex;
+
+                    currentButtonIndex = (aux + 1) > 7 ? 0 : currentButtonIndex + 1;
+
+                    var oldButtonPos = new Location(commonWorld, YMLConfig.getInt("BUTTON_MOVEMENT_" + oldButtonIndex + "_X"), YMLConfig.getInt("BUTTON_MOVEMENT_" + oldButtonIndex + "_Y"), YMLConfig.getInt("BUTTON_MOVEMENT_" + oldButtonIndex + "_Z"));
+                    oldButtonPos.getBlock().setType(Material.AIR);
+
+                    var currentButtonLoc = new Location(commonWorld, YMLConfig.getInt("BUTTON_MOVEMENT_" + currentButtonIndex + "_X"), YMLConfig.getInt("BUTTON_MOVEMENT_" + currentButtonIndex + "_Y"), YMLConfig.getInt("BUTTON_MOVEMENT_" + currentButtonIndex + "_Z"));
+
+                    var currentButton = currentButtonLoc.getBlock();
+                    currentButton.setType(Material.STONE_BUTTON);
+
+                    try {
+                        var blockFace = BlockFace.valueOf(YMLConfig.getString("buttonBlockFace"));
+
+                        Directional data = (Directional)currentButton.getBlockData();
+                        data.setFacing(blockFace);
+                        currentButton.setBlockData(data);
+                    } catch (IllegalArgumentException ex) {
+                        Bukkit.getLogger().info(ChatColorFormatter.stringToString("&cDEBES DE CONFIGURAR EL BLOCKFACE DEL MOVIMIENTO DE BOTONES."));
+                    }
+                }, 10, 10).getTaskId();
+            }
         }
 
-        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
-    }
-
-    public void endAction(boolean won, boolean commandMade) {
-        Bukkit.getScheduler().cancelTask(this.taskLaterID);
-
-        ListenerUtils.unregisterListener(gameListeners);
-
-        var currentPlayer = Bukkit.getPlayer(currentPlayerUUID);
-
-        var connection = Main.getInstance().getConnection();
-
         Bukkit.getOnlinePlayers().forEach(online -> {
-            if (!online.getUniqueId().equals(currentPlayerUUID)) {
+            online.showTitle(Title.title(ChatColorFormatter.stringToComponent(action.getTitle()), ChatColorFormatter.stringToComponent(!action.equals(Actions.PRESSURE_PLATE) ? action.equals(Actions.FLOOR_IS_LAVA) ? YMLConfig.getString("correctBlockAnnounceMessage") + getBlockName(correctColorType) : action.getSubtitle() : YMLConfig.getString("correctPressurePlateMessage") + getBlockName(Material.getMaterial(pressurePlateType + "_PRESSURE_PLATE")))));
+            if (!online.getUniqueId().equals(player.getUniqueId())) {
                 try {
                     var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
                     if (!(role != null && role.equals(Roles.MEMBER))) return;
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-
-                FalseSpectator.removeFalseSpectator(online, GameMode.ADVENTURE);
-                online.teleport(spawnLocation);
-            }
-        });
-
-        switch(currentAction) {
-            case THREE_ITEM_FRAMES -> {
-                var commonWorld = Bukkit.getWorld(YMLConfig.getString("THREE_ITEM_FRAMES_COMMON_LOC_WORLD_NAME"));
-
-                var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Z"));
-                var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z"));
-                var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Z"));
-
-                firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-                secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-                thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-
-                DataContainer.set(currentPlayer, "framedItems", PersistentDataType.BYTE, (byte) 0);
-            }
-            case PRESS_BUTTON -> {
-                var commonWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
-
-                var itemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
-
-                itemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-            }
-            case PAPER_ITEM_FRAME_SELECTION -> {
-                var commonWorld = Bukkit.getWorld(YMLConfig.getString("PAPER_ITEM_FRAME_SELECTION_COMMON_LOC_WORLD_NAME"));
-
-                var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Z"));
-                var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Z"));
-                var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Z"));
-
-                firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-                secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-                thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
-            }
-        }
-
-        if (currentPlayer != null) {
-            currentPlayer.setGameMode(GameMode.ADVENTURE);
-            currentPlayer.teleport(spawnLocation);
-
-            currentPlayer.getInventory().clear();
-
-            if (won) {
-                try {
-                    setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
-
-                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
-                } catch (SQLException e) {
                     Bukkit.getLogger().info(e.getMessage());
                     throw new RuntimeException(e);
                 }
-            } else {
-                Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
-            }
-        }
 
-        this.currentAction = null;
-        this.currentPlayerUUID = null;
-        if (!commandMade) startRound();
+                FalseSpectator.addFalseSpectator(online);
+                online.teleport(actionLocation);
+            }
+        });
+
+        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, action.equals(Actions.FLOOR_IS_LAVA)), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
+    }
+
+    public void endAction(boolean won, boolean commandMade, boolean isLava) {
+        var currentPlayer = Bukkit.getPlayer(currentPlayerUUID);
+
+        var connection = Main.getInstance().getConnection();
+
+        if (!isLava) {
+            Bukkit.getScheduler().cancelTask(this.taskLaterID);
+
+            Bukkit.getOnlinePlayers().forEach(online -> {
+                if (!online.getUniqueId().equals(currentPlayerUUID)) {
+                    try {
+                        var role = getRole(Main.getInstance().getConnection(), online.getUniqueId());
+                        if (!(role != null && role.equals(Roles.MEMBER))) return;
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    FalseSpectator.removeFalseSpectator(online, GameMode.ADVENTURE);
+                    online.teleport(spawnLocation);
+                }
+            });
+
+            switch (currentAction) {
+                case THREE_ITEM_FRAMES -> {
+                    var commonWorld = Bukkit.getWorld(YMLConfig.getString("THREE_ITEM_FRAMES_COMMON_LOC_WORLD_NAME"));
+
+                    var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_FIRST_LOC_Z"));
+                    var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_SECOND_LOC_Z"));
+                    var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_X"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Y"), YMLConfig.getInt("THREE_ITEM_FRAMES_THIRD_LOC_Z"));
+
+                    firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                    secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                    thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+
+                    DataContainer.set(currentPlayer, "framedItems", PersistentDataType.BYTE, (byte) 0);
+                }
+                case PRESS_BUTTON -> {
+                    var commonWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
+
+                    var itemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
+
+                    itemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                }
+                case PAPER_ITEM_FRAME_SELECTION -> {
+                    var commonWorld = Bukkit.getWorld(YMLConfig.getString("PAPER_ITEM_FRAME_SELECTION_COMMON_LOC_WORLD_NAME"));
+
+                    var firstItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_CORRECT_LOC_Z"));
+                    var secondItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK_LOC_Z"));
+                    var thirdItemFrameLoc = new Location(commonWorld, YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_X"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Y"), YMLConfig.getInt("PAPER_ITEM_FRAME_SELECTION_TRICK2_LOC_Z"));
+
+                    firstItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                    secondItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                    thirdItemFrameLoc.getNearbyEntitiesByType(ItemFrame.class, 1).forEach(itemFrame -> itemFrame.setItem(null));
+                }
+                case PRESSURE_PLATE -> {
+                    Bukkit.getScheduler().cancelTask(gameListeners.getTaskID());
+                    if (currentPlayer != null) currentPlayer.setExp(0);
+                    this.pressureTypesShuffle.clear();
+                    this.pressurePlateType = "";
+                }
+                case BUTTON_MOVEMENT -> {
+                    Bukkit.getScheduler().cancelTask(this.buttonTaskID);
+
+                    var commonWorld = Bukkit.getWorld(YMLConfig.getString("BUTTON_MOVEMENT_COMMON_LOC_WORLD_NAME"));
+
+                    if (commonWorld == null) throw new IllegalStateException("The common world is null. It MUSTN'T be null at this point.");
+
+                    for (int i = 0; i < 8; i++) {
+                        var currentButtonLoc = new Location(commonWorld, YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_X"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Y"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Z"));
+                        currentButtonLoc.getBlock().setType(Material.AIR);
+                    }
+
+                    this.currentButtonIndex = 0;
+                    this.buttonTaskID = 0;
+                }
+            }
+
+            ListenerUtils.unregisterListener(gameListeners);
+
+            if (currentPlayer != null) {
+                currentPlayer.setGameMode(GameMode.ADVENTURE);
+                currentPlayer.teleport(spawnLocation);
+
+                currentPlayer.getInventory().clear();
+
+                if (won) {
+                    try {
+                        setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
+
+                        Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&a" + currentPlayer.getName() + "&a ha conseguido +1 punto."), ChatColorFormatter.stringToComponent(""))));
+                    } catch (SQLException e) {
+                        Bukkit.getLogger().info(e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent("&cNo se han obtenido puntos."), ChatColorFormatter.stringToComponent(""))));
+                }
+            }
+
+            this.currentAction = null;
+            this.currentPlayerUUID = null;
+            if (!commandMade) startRound();
+        } else {
+            if (currentPlayer == null) return;
+            if (gameListeners.getLastConcreteType().equals(correctColorType)) {
+                this.colorBlocksLocations.forEach(blockPos -> {
+                    if (!blockPos.equals(currentPlayer.getLocation().getBlock().getRelative(BlockFace.DOWN).getLocation())) blockPos.getBlock().setType(Material.AIR);
+                });
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(true, false, false), 30);
+            } else {
+                this.colorBlocksLocations.forEach(blockPos -> blockPos.getBlock().setType(Material.AIR));
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, false), 30);
+            }
+
+            this.colorBlocksLocations = new ArrayList<>();
+            this.correctColorType = null;
+        }
     }
 
     public void setPoints(Connection connection, UUID playerUUID, int points) throws SQLException {
@@ -428,6 +540,13 @@ public class GameManager {
 
     public boolean isMidRound() {
         return isMidRound;
+    }
+
+    private final List<Material> concreteMaterials = new ArrayList<>(List.of(Material.WHITE_CONCRETE, Material.BLACK_CONCRETE, Material.CYAN_CONCRETE, Material.RED_CONCRETE, Material.MAGENTA_CONCRETE, Material.GRAY_CONCRETE, Material.LIME_CONCRETE, Material.ORANGE_CONCRETE, Material.PINK_CONCRETE, Material.PURPLE_CONCRETE, Material.YELLOW_CONCRETE, Material.BROWN_CONCRETE, Material.BLUE_CONCRETE, Material.CYAN_CONCRETE));
+
+    private String getBlockName(Material material) {
+        var blockName = YMLConfig.getString(material.name());
+        return (blockName != null) ? blockName : material.name();
     }
 
 }
