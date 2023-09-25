@@ -3,6 +3,8 @@ package me.lofro;
 import co.aikar.commands.PaperCommandManager;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.lofro.game.GameManager;
 import me.lofro.game.commands.PointsCommand;
 import me.lofro.game.commands.StaffCommand;
@@ -12,8 +14,10 @@ import me.lofro.utils.CommandUtils;
 import me.lofro.utils.ListenerUtils;
 import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
+import me.lofro.utils.placeholders.PointsPlaceHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -50,6 +54,10 @@ public class Main extends JavaPlugin {
             Bukkit.getLogger().info(e.getMessage());
             Bukkit.getLogger().info(ChatColorFormatter.stringToString("&cLa base de datos no se ha podido conectar correctamente."));
             throw new RuntimeException(e);
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
+            new PointsPlaceHolder().register();
         }
 
         this.gameManager = new GameManager(new GameListeners());

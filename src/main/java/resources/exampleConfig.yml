@@ -192,3 +192,6 @@ winPointsMessage: "&a{jugador} ha conseguido +1 punto." #{jugador} será remplaz
 OAK_PRESSURE_PLATE: "ROBLE"
 BIRCH_PRESSURE_PLATE: "ABEDUL"
 JUNGLE_PRESSURE_PLATE: "JUNGLA" #SEGUIR CON EL RESTO. FORMATO MATERIAL. CONSULTAR API ANTE DUDAS.
+#TIEMPO
+maxSecsPerAction: 11 #Tiempo minimo por cada accion.
+minSecsPerAction: 5 #Tiempo maximo por cada accion.

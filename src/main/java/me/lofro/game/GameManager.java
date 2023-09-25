@@ -246,7 +246,7 @@ public class GameManager {
             }
         });
 
-        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, action.equals(Actions.FLOOR_IS_LAVA)), ThreadLocalRandom.current().nextInt(5, 11) * 20L).getTaskId();
+        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, action.equals(Actions.FLOOR_IS_LAVA)), ThreadLocalRandom.current().nextInt(YMLConfig.getInt("minSecsPerAction"), YMLConfig.getInt("maxSecsPerAction")) * 20L).getTaskId();
     }
 
     public void endAction(boolean won, boolean commandMade, boolean isLava) {
