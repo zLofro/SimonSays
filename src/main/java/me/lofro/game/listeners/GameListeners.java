@@ -315,6 +315,7 @@ public class GameListeners implements Listener {
 
                     if ((clickedBlock.getLocation().getBlockX() == currentButtonLoc.getBlockX()) && (clickedBlock.getLocation().getBlockY() == currentButtonLoc.getBlockY()) && (clickedBlock.getLocation().getBlockZ() == currentButtonLoc.getBlockZ())) {
                         gameManager.endAction(true, false, false);
+                        clickedBlock.setType(Material.AIR);
                     }
                 }
             }

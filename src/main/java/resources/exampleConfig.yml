@@ -189,3 +189,6 @@ correctBlockAnnounceMessage: "&aEL BLOQUE CORRECTO ES "
 correctPressurePlateMessage: "&aLA PLACA DE PRESION CORRECTA ES "
 noPointsMessage: "&cNo se han obtenido puntos."
 winPointsMessage: "&a{jugador} ha conseguido +1 punto." #{jugador} será remplazado por el nombre del jugador automaticamente.
+OAK_PRESSURE_PLATE: "ROBLE"
+BIRCH_PRESSURE_PLATE: "ABEDUL"
+JUNGLE_PRESSURE_PLATE: "JUNGLA" #SEGUIR CON EL RESTO. FORMATO MATERIAL. CONSULTAR API ANTE DUDAS.

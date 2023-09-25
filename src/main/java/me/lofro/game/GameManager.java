@@ -197,6 +197,11 @@ public class GameManager {
 
                 if (commonWorld == null) throw new IllegalStateException("The common world is null. It MUSTN'T be null at this point.");
 
+                for (int i = 0; i < 7; i++) {
+                    var currentButtonLoc = new Location(commonWorld, YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_X"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Y"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Z"));
+                    currentButtonLoc.getBlock().setType(Material.AIR);
+                }
+
                 this.buttonTaskID = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
                     var oldButtonIndex = currentButtonIndex;
 
@@ -311,7 +316,7 @@ public class GameManager {
 
                     if (commonWorld == null) throw new IllegalStateException("The common world is null. It MUSTN'T be null at this point.");
 
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 7; i++) {
                         var currentButtonLoc = new Location(commonWorld, YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_X"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Y"), YMLConfig.getInt("BUTTON_MOVEMENT_" + i + "_Z"));
                         currentButtonLoc.getBlock().setType(Material.AIR);
                     }
@@ -542,7 +547,7 @@ public class GameManager {
         return isMidRound;
     }
 
-    private final List<Material> concreteMaterials = new ArrayList<>(List.of(Material.WHITE_CONCRETE, Material.BLACK_CONCRETE, Material.CYAN_CONCRETE, Material.RED_CONCRETE, Material.MAGENTA_CONCRETE, Material.GRAY_CONCRETE, Material.LIME_CONCRETE, Material.ORANGE_CONCRETE, Material.PINK_CONCRETE, Material.PURPLE_CONCRETE, Material.YELLOW_CONCRETE, Material.BROWN_CONCRETE, Material.BLUE_CONCRETE, Material.CYAN_CONCRETE));
+    private final List<Material> concreteMaterials = new ArrayList<>(List.of(Material.WHITE_CONCRETE, Material.BLACK_CONCRETE, Material.CYAN_CONCRETE, Material.RED_CONCRETE, Material.MAGENTA_CONCRETE, Material.GRAY_CONCRETE, Material.LIME_CONCRETE, Material.ORANGE_CONCRETE, Material.YELLOW_CONCRETE, Material.BROWN_CONCRETE, Material.BLUE_CONCRETE, Material.CYAN_CONCRETE));
 
     private String getBlockName(Material material) {
         var blockName = YMLConfig.getString(material.name());
