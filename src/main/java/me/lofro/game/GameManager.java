@@ -132,11 +132,38 @@ public class GameManager {
         switch(action) {
             case PAPER_ITEM_FRAME -> {
                 var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(1, 5));
+
+                switch (customPaper.getCustomModelData()) {
+                    case 1 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE QUESO"));
+                    case 2 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE PEPPERONI"));
+                    case 3 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE 3 MEAT"));
+                    case 4 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE SUPREME"));
+                }
+
                 player.getInventory().addItem(customPaper.build());
             }
             case PAPER_ITEM_FRAME2 -> {
-                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(5, 8));
-                player.getInventory().addItem(customPaper.build());
+                var customPaper1 = new ItemBuilder(Material.PAPER).setCustomModelData(5).setDisplayName(ChatColorFormatter.stringToString("#FF6637&lCRAZY SAUCE"));
+                var customPaper2 = new ItemBuilder(Material.PAPER).setCustomModelData(6).setDisplayName(ChatColorFormatter.stringToString("#FFD737&lBUFFALO DIP"));
+                var customPaper3 = new ItemBuilder(Material.PAPER).setCustomModelData(7).setDisplayName(ChatColorFormatter.stringToString("#FFFFFF&lRANCH DIP"));
+
+                switch(ThreadLocalRandom.current().nextInt(0, 3)) {
+                    case 0 ->{
+                        player.getInventory().setItem(0, customPaper1.build());
+                        player.getInventory().setItem(1, customPaper2.build());
+                        player.getInventory().setItem(2, customPaper3.build());
+                    }
+                    case 1 -> {
+                        player.getInventory().setItem(1, customPaper1.build());
+                        player.getInventory().setItem(2, customPaper2.build());
+                        player.getInventory().setItem(0, customPaper3.build());
+                    }
+                    case 2 -> {
+                        player.getInventory().setItem(2, customPaper1.build());
+                        player.getInventory().setItem(1, customPaper3.build());
+                        player.getInventory().setItem(0, customPaper2.build());
+                    }
+                }
             }
             case PAPER_ITEM_FRAME_SELECTION -> {
                 var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(8, 13));
