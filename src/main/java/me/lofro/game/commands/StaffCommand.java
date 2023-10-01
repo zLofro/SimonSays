@@ -79,9 +79,13 @@ public class StaffCommand extends BaseCommand {
 
     @Subcommand("testAction")
     private void testAction(CommandSender sender, Actions action) {
-        if (sender instanceof Player player) {
-            gameManager.startRound(action);
-            sender.sendMessage(ChatColorFormatter.stringToString("&Estas testeando la acción " + action.name() + "&a."));
+        if (sender instanceof Player) {
+            if (!gameManager.getOnlineMembers().isEmpty()) {
+                gameManager.startRound(action);
+                sender.sendMessage(ChatColorFormatter.stringToString("&aEstas testeando la acción " + action.name() + "&a."));
+            } else {
+                sender.sendMessage(ChatColorFormatter.stringToString("&cNo hay jugadores suficientes para comenzar una ronda."));
+            }
         } else {
             sender.sendMessage(ChatColorFormatter.stringToString("&cDebes de ser un jugador para poder usar este comando."));
         }
