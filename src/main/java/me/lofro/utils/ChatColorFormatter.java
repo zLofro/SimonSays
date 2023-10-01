@@ -26,7 +26,7 @@ public class ChatColorFormatter {
      * @return String containing the ChatColor.COLOR_CHAR color code character replaced by '&'.
      */
     public static String stringToString(String text) {
-        return ChatColor.translateAlternateColorCodes('&', text);
+        return ChatColorFormatter.format(text);
     }
 
     /**
