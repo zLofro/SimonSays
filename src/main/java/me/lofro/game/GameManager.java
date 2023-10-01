@@ -375,7 +375,7 @@ public class GameManager {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("noPointsMessage")), ChatColorFormatter.stringToComponent(""))));
+                    Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("looseTitleMessage").replace("{jugador}", currentPlayer.getName())), ChatColorFormatter.stringToComponent(YMLConfig.getString("looseSubtitleMessage").replace("{jugador}", currentPlayer.getName())))));
                 }
             }
 
