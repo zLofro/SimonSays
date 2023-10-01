@@ -68,7 +68,7 @@ public class GameManager {
 
     private @Getter int currentButtonIndex = 0;
 
-    public void startRound() {
+    public void startRound(Actions action) {
         if (isMidRound) {
             if (currentActionsThisRound >= totalActionsThisRound) {
                 stopRound(false);
@@ -79,7 +79,7 @@ public class GameManager {
                     startRound();
                     return;
                 }
-                startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], player);
+                startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player);
             }
         } else {
             this.currentRoundParticipants = getOnlineMembers();
@@ -94,8 +94,12 @@ public class GameManager {
 
             this.isMidRound = true;
 
-            startAction(Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)], player);
+            startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player);
         }
+    }
+
+    public void startRound() {
+        this.startRound(null);
     }
 
     public void stopRound(boolean commandMade) {
@@ -365,7 +369,7 @@ public class GameManager {
                     try {
                         setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
 
-                        Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("winPointsMessage").replace("{jugador}", currentPlayer.getName())), ChatColorFormatter.stringToComponent(""))));
+                        Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("winTitlePointsMessage").replace("{jugador}", currentPlayer.getName())), ChatColorFormatter.stringToComponent(YMLConfig.getString("winSubtitlePointsMessage").replace("{jugador}", currentPlayer.getName())))));
                     } catch (SQLException e) {
                         Bukkit.getLogger().info(e.getMessage());
                         throw new RuntimeException(e);

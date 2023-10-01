@@ -80,7 +80,7 @@ public class StaffCommand extends BaseCommand {
     @Subcommand("testAction")
     private void testAction(CommandSender sender, Actions action) {
         if (sender instanceof Player player) {
-            gameManager.startAction(action, player);
+            gameManager.startRound(action);
             sender.sendMessage(ChatColorFormatter.stringToString("&Estas testeando la acción " + action.name() + "&a."));
         } else {
             sender.sendMessage(ChatColorFormatter.stringToString("&cDebes de ser un jugador para poder usar este comando."));

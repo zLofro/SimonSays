@@ -147,7 +147,8 @@ FLOOR_IS_LAVA_SECOND_CORNER_Z: 3
 correctBlockAnnounceMessage: "&aEL BLOQUE CORRECTO ES " #TITLE DE CUAL BLOQUE ES CORRECTO EN EL FLOOR IS LAVA
 correctPressurePlateMessage: "&aLA PLACA DE PRESION CORRECTA ES " #TITLE DE CUAL ES LA PLACA CORRECTA EN EL PRESSURE PLATE
 noPointsMessage: "&cNo se han obtenido puntos."
-winPointsMessage: "&a{jugador} ha conseguido +1 punto." #{jugador} será remplazado por el nombre del jugador automaticamente.
+winTitlePointsMessage: "&a{jugador}"
+winSubtitlePointsMessage: "&aha conseguido +1 punto." #{jugador} será remplazado por el nombre del jugador automaticamente.
 OAK_PRESSURE_PLATE: "ROBLE"
 BIRCH_PRESSURE_PLATE: "ABEDUL"
 JUNGLE_PRESSURE_PLATE: "JUNGLA" #SEGUIR CON EL RESTO. FORMATO MATERIAL. CONSULTAR API ANTE DUDAS.
