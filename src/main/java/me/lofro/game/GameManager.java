@@ -170,7 +170,17 @@ public class GameManager {
                 }
             }
             case PAPER_ITEM_FRAME_SELECTION -> {
-                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(ThreadLocalRandom.current().nextInt(8, 13));
+                var random = ThreadLocalRandom.current().nextInt(8, 13);
+                var customPaper = new ItemBuilder(Material.PAPER).setCustomModelData(random);
+
+                switch (random) {
+                    case 8 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE QUESO"));
+                    case 9 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE PEPPERONI"));
+                    case 10 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE 3 MEAT"));
+                    case 11 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lSUPER CHEESE SUPREME"));
+                    case 12 -> customPaper.setDisplayName(ChatColorFormatter.stringToString("&f&lULTIMATE SUPREME"));
+                }
+
                 player.getInventory().addItem(customPaper.build());
             }
             case THREE_ITEM_FRAMES -> {
