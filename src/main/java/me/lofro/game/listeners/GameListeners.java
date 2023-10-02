@@ -302,6 +302,20 @@ public class GameListeners implements Listener {
                             gameManager.endAction(itemFrameItem.hasItemMeta() && new ItemBuilder(itemFrameItem).getCustomModelData() == 20, false, false);
                         }
                     });
+                } else if (clickedBlock.getLocation().getBlockX() == YMLConfig.getInt("PRESS_BUTTON_BUTTON2_X")
+                        && clickedBlock.getLocation().getBlockY() == YMLConfig.getInt("PRESS_BUTTON_BUTTON2_Y")
+                        && clickedBlock.getLocation().getBlockZ() == YMLConfig.getInt("PRESS_BUTTON_BUTTON2_Z")) {
+                    var itemFrameWorld = Bukkit.getWorld(YMLConfig.getString("PRESS_BUTTON_COMMON_LOC_WORLD_NAME"));
+
+                    if (itemFrameWorld == null) throw new IllegalStateException("The itemFrameWorld cannot be null at this point.");
+
+                    var itemFrameLoc = new Location(itemFrameWorld, YMLConfig.getInt("PRESS_BUTTON_FRAME_X"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Y"), YMLConfig.getInt("PRESS_BUTTON_FRAME_Z"));
+                    itemFrameLoc.getNearbyEntities(2, 2, 2).forEach(entity -> {
+                        if (entity instanceof ItemFrame itemFrame) {
+                            var itemFrameItem = itemFrame.getItem();
+                            gameManager.endAction(itemFrameItem.hasItemMeta() && new ItemBuilder(itemFrameItem).getCustomModelData() == 21, false, false);
+                        }
+                    });
                 }
             } else if (gameManager.getCurrentAction().equals(Actions.BUTTON_MOVEMENT)) {
                 var clickedBlock = event.getClickedBlock();

@@ -27,9 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GameManager {
@@ -261,6 +259,7 @@ public class GameManager {
                     try {
                         var blockFace = BlockFace.valueOf(YMLConfig.getString("buttonBlockFace"));
 
+                        currentButtonLoc.getChunk().load();
                         Directional data = (Directional)currentButton.getBlockData();
                         data.setFacing(blockFace);
                         currentButton.setBlockData(data);
@@ -560,6 +559,24 @@ public class GameManager {
         return onlineMembers;
     }
 
+    public List<UUID> getTop() {
+        Map<UUID, Integer> topPoints = new HashMap<>();
+
+        Bukkit.getOnlinePlayers().forEach(online -> {
+            try {
+                var connection = Main.getInstance().getConnection();
+                var role = getRole(connection, online.getUniqueId());
+                if (role != null && role.equals(Roles.MEMBER)) {
+                    topPoints.put(online.getUniqueId(), getPoints(connection, online.getUniqueId()));
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return new ArrayList<>(new TreeMap<>(topPoints).keySet());
+    }
+
     public @Nullable Roles getRole(Connection connection, UUID uuid) throws SQLException {
         createRoleTable(connection);
 
@@ -588,7 +605,7 @@ public class GameManager {
         return isMidRound;
     }
 
-    private final List<Material> concreteMaterials = new ArrayList<>(List.of(Material.WHITE_CONCRETE, Material.BLACK_CONCRETE, Material.CYAN_CONCRETE, Material.RED_CONCRETE, Material.MAGENTA_CONCRETE, Material.GRAY_CONCRETE, Material.LIME_CONCRETE, Material.ORANGE_CONCRETE, Material.YELLOW_CONCRETE, Material.BROWN_CONCRETE, Material.BLUE_CONCRETE, Material.CYAN_CONCRETE));
+    private final List<Material> concreteMaterials = new ArrayList<>(List.of(Material.RED_WOOL, Material.ORANGE_WOOL, Material.YELLOW_WOOL, Material.GREEN_WOOL));
 
     private String getBlockName(Material material) {
         var blockName = YMLConfig.getString(material.name());
