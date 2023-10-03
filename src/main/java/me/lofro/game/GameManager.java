@@ -23,10 +23,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -77,7 +74,7 @@ public class GameManager {
                     startRound();
                     return;
                 }
-                startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player);
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player), 30);
             }
         } else {
             this.currentRoundParticipants = getOnlineMembers();
@@ -86,13 +83,13 @@ public class GameManager {
             var player = Bukkit.getPlayer(currentRoundParticipants.get(currentActionsThisRound));
             if (player == null) {
                 currentActionsThisRound++;
-                startRound();
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startRound(), 30);
                 return;
             }
 
             this.isMidRound = true;
 
-            startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player);
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player), 30);
         }
     }
 
@@ -266,7 +263,7 @@ public class GameManager {
                     } catch (IllegalArgumentException ex) {
                         Bukkit.getLogger().info(ChatColorFormatter.stringToString("&cDEBES DE CONFIGURAR EL BLOCKFACE DEL MOVIMIENTO DE BOTONES."));
                     }
-                }, 10, 10).getTaskId();
+                }, 10, 20).getTaskId();
             }
         }
 
@@ -559,22 +556,43 @@ public class GameManager {
         return onlineMembers;
     }
 
-    public List<UUID> getTop() {
+    public List<UUID> getTop() throws SQLException {
         Map<UUID, Integer> topPoints = new HashMap<>();
 
-        Bukkit.getOnlinePlayers().forEach(online -> {
+        var connection = Main.getInstance().getConnection();
+
+        getMembers(connection).forEach(uuid -> {
             try {
-                var connection = Main.getInstance().getConnection();
-                var role = getRole(connection, online.getUniqueId());
-                if (role != null && role.equals(Roles.MEMBER)) {
-                    topPoints.put(online.getUniqueId(), getPoints(connection, online.getUniqueId()));
-                }
+                topPoints.put(uuid, getPoints(connection, uuid));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
 
-        return new ArrayList<>(new TreeMap<>(topPoints).keySet());
+        return sortByValue(topPoints).keySet().stream().toList();
+    }
+
+    public List<UUID> getMembers(Connection connection) throws SQLException {
+        createRoleTable(connection);
+
+        PreparedStatement pointGetterStatement = connection.prepareStatement("SELECT PlayerUUID FROM Roles WHERE PlayerRole LIKE ?");
+
+        pointGetterStatement.setString(1, Roles.MEMBER.name());
+
+        ResultSet resultSet = pointGetterStatement.executeQuery();
+
+        ResultSetMetaData resultMetadata = resultSet.getMetaData();
+        int columnCount = resultMetadata.getColumnCount();
+
+        List<UUID> UUIDList = new ArrayList<>();
+        while(resultSet.next()) {
+            int i = 1;
+            while (i <= columnCount) {
+                UUIDList.add(UUID.fromString(resultSet.getString(i++)));
+            }
+        }
+
+        return UUIDList;
     }
 
     public @Nullable Roles getRole(Connection connection, UUID uuid) throws SQLException {
@@ -610,6 +628,19 @@ public class GameManager {
     private String getBlockName(Material material) {
         var blockName = YMLConfig.getString(material.name());
         return (blockName != null) ? blockName : material.name();
+    }
+
+    private <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        Collections.reverse(list);
+
+        Map<K, V> result = new LinkedHashMap<>();
+        for (Map.Entry<K, V> entry : list) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+
+        return result;
     }
 
 }

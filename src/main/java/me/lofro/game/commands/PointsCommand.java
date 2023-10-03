@@ -29,13 +29,16 @@ public class PointsCommand extends BaseCommand {
     }
 
     @Subcommand("añadir")
-    @CommandCompletion(" puntos")
-    private void givePoints(CommandSender sender, @Flags("other") Player player, int points) {
+    @CommandCompletion("nombre puntos")
+    private void givePoints(CommandSender sender, String playerName, int points) {
         try {
             gameManager.createPointsTable(connection);
 
-            var newPoints = gameManager.getPoints(connection, player.getUniqueId()) + points;
-            gameManager.setPoints(connection, player.getUniqueId(), newPoints);
+            var player = Bukkit.getOfflinePlayer(playerName);
+            var uuid = player.getUniqueId();
+
+            var newPoints = gameManager.getPoints(connection, uuid) + points;
+            gameManager.setPoints(connection, uuid, newPoints);
             sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han añadido " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
         } catch (SQLException e) {
             Bukkit.getLogger().info(e.getMessage());
@@ -46,10 +49,13 @@ public class PointsCommand extends BaseCommand {
 
     @Subcommand("eliminar")
     @CommandCompletion(" puntos")
-    private void removePoints(CommandSender sender, @Flags("other") Player player, int points) {
+    private void removePoints(CommandSender sender, String playerName, int points) {
         try {
-            var newPoints = gameManager.getPoints(connection, player.getUniqueId()) - points;
-            gameManager.setPoints(connection, player.getUniqueId(), newPoints);
+            var player = Bukkit.getOfflinePlayer(playerName);
+            var uuid = player.getUniqueId();
+
+            var newPoints = gameManager.getPoints(connection, uuid) - points;
+            gameManager.setPoints(connection, uuid, newPoints);
             sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han eliminado " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
         } catch (SQLException e) {
             Bukkit.getLogger().info(e.getMessage());

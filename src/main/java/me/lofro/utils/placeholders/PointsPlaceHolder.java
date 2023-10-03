@@ -21,170 +21,170 @@ public class PointsPlaceHolder extends PlaceholderExpansion {
                 case "playerpoints" -> {
                     return String.valueOf(gameManager.getPoints(connection, p.getUniqueId()));
                 }
-                case "%simonsays_playerpoints_1_points%" -> {
+                case "playerpoints_1_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.isEmpty()) return null;
+                    if (topList.isEmpty()) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(0)));
                 }
-                case "%simonsays_playerpoints_1_name%" -> {
+                case "playerpoints_1_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.isEmpty()) return null;
-                    var player = Bukkit.getPlayer(topList.get(0));
-                    return player != null ? player.getName() : null;
+                    if (topList.isEmpty()) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(0));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_2_points%" -> {
+                case "playerpoints_2_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 2) return null;
+                    if (topList.size() < 2) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(1)));
                 }
-                case "%simonsays_playerpoints_2_name%" -> {
+                case "playerpoints_2_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 2) return null;
-                    var player = Bukkit.getPlayer(topList.get(1));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 2) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(1));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_3_points%" -> {
+                case "playerpoints_3_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 3) return null;
+                    if (topList.size() < 3) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(2)));
                 }
-                case "%simonsays_playerpoints_3_name%" -> {
+                case "playerpoints_3_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 3) return null;
-                    var player = Bukkit.getPlayer(topList.get(2));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 3) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(2));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_4_points%" -> {
+                case "playerpoints_4_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 4) return null;
+                    if (topList.size() < 4) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(3)));
                 }
-                case "%simonsays_playerpoints_4_name%" -> {
+                case "playerpoints_4_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 4) return null;
-                    var player = Bukkit.getPlayer(topList.get(3));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 4) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(3));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_5_points%" -> {
+                case "playerpoints_5_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 5) return null;
+                    if (topList.size() < 5) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(4)));
                 }
-                case "%simonsays_playerpoints_5_name%" -> {
+                case "playerpoints_5_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 5) return null;
-                    var player = Bukkit.getPlayer(topList.get(4));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 5) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(4));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_6_points%" -> {
+                case "playerpoints_6_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 6) return null;
+                    if (topList.size() < 6) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(5)));
                 }
-                case "%simonsays_playerpoints_6_name%" -> {
+                case "playerpoints_6_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 6) return null;
-                    var player = Bukkit.getPlayer(topList.get(5));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 6) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(5));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_7_points%" -> {
+                case "playerpoints_7_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 7) return null;
+                    if (topList.size() < 7) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(6)));
                 }
-                case "%simonsays_playerpoints_7_name%" -> {
+                case "playerpoints_7_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 7) return null;
-                    var player = Bukkit.getPlayer(topList.get(6));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 7) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(6));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_8_points%" -> {
+                case "playerpoints_8_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 8) return null;
+                    if (topList.size() < 8) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(7)));
                 }
-                case "%simonsays_playerpoints_8_name%" -> {
+                case "playerpoints_8_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 8) return null;
-                    var player = Bukkit.getPlayer(topList.get(7));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 8) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(7));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_9_points%" -> {
+                case "playerpoints_9_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 9) return null;
+                    if (topList.size() < 9) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(8)));
                 }
-                case "%simonsays_playerpoints_9_name%" -> {
+                case "playerpoints_9_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 9) return null;
-                    var player = Bukkit.getPlayer(topList.get(8));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 9) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(8));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_10_points%" -> {
+                case "playerpoints_10_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 10) return null;
+                    if (topList.size() < 10) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(9)));
                 }
-                case "%simonsays_playerpoints_10_name%" -> {
+                case "playerpoints_10_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 10) return null;
-                    var player = Bukkit.getPlayer(topList.get(9));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 10) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(9));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_11_points%" -> {
+                case "playerpoints_11_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 11) return null;
+                    if (topList.size() < 11) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(10)));
                 }
-                case "%simonsays_playerpoints_11_name%" -> {
+                case "playerpoints_11_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 11) return null;
-                    var player = Bukkit.getPlayer(topList.get(10));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 11) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(10));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_12_points%" -> {
+                case "playerpoints_12_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 12) return null;
+                    if (topList.size() < 12) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(11)));
                 }
-                case "%simonsays_playerpoints_12_name%" -> {
+                case "playerpoints_12_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 12) return null;
-                    var player = Bukkit.getPlayer(topList.get(11));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 12) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(11));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_13_points%" -> {
+                case "playerpoints_13_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 13) return null;
+                    if (topList.size() < 13) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(12)));
                 }
-                case "%simonsays_playerpoints_13_name%" -> {
+                case "playerpoints_13_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 13) return null;
-                    var player = Bukkit.getPlayer(topList.get(12));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 13) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(12));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_14_points%" -> {
+                case "playerpoints_14_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 14) return null;
+                    if (topList.size() < 14) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(13)));
                 }
-                case "%simonsays_playerpoints_14_name%" -> {
+                case "playerpoints_14_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 14) return null;
-                    var player = Bukkit.getPlayer(topList.get(13));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 14) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(13));
+                    return player.getName();
                 }
-                case "%simonsays_playerpoints_15_points%" -> {
+                case "playerpoints_15_points" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 15) return null;
+                    if (topList.size() < 15) return "";
                     return String.valueOf(gameManager.getPoints(connection, topList.get(14)));
                 }
-                case "%simonsays_playerpoints_15_name%" -> {
+                case "playerpoints_15_name" -> {
                     var topList = gameManager.getTop();
-                    if (topList.size() < 15) return null;
-                    var player = Bukkit.getPlayer(topList.get(14));
-                    return player != null ? player.getName() : null;
+                    if (topList.size() < 15) return "";
+                    var player = Bukkit.getOfflinePlayer(topList.get(14));
+                    return player.getName();
                 }
             }
         } catch (SQLException e) {
