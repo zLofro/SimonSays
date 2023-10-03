@@ -14,6 +14,8 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -28,6 +30,18 @@ public class GameListeners implements Listener {
     private int applyingPressureTicks = 0;
 
     private @Getter Material lastConcreteType = null;
+
+    @EventHandler
+    private void onBlockBreak(BlockBreakEvent event) {
+        var gameManager = Main.getInstance().getGameManager();
+        if (gameManager.isMidRound()) event.setCancelled(true);
+    }
+
+    @EventHandler
+    private void onDamageByEntity(EntityDamageByEntityEvent event) {
+        var gameManager = Main.getInstance().getGameManager();
+        if (gameManager.isMidRound()) event.setCancelled(true);
+    }
 
     @EventHandler
     private void onInteractAtEntity(PlayerInteractAtEntityEvent event) {
@@ -271,6 +285,8 @@ public class GameListeners implements Listener {
                             }
                         }
                     }
+                } else {
+                    if (gameManager.isMidRound()) event.setCancelled(true);
                 }
             }
         }
@@ -332,7 +348,11 @@ public class GameListeners implements Listener {
                         clickedBlock.setType(Material.AIR);
                     }
                 }
+            } else {
+                if (gameManager.isMidRound()) event.setCancelled(true);
             }
+        } else {
+            if (gameManager.isMidRound()) event.setCancelled(true);
         }
     }
 

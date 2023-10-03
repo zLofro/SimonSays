@@ -74,7 +74,7 @@ public class GameManager {
                     startRound();
                     return;
                 }
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player), 30);
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player), 40);
             }
         } else {
             this.currentRoundParticipants = getOnlineMembers();
@@ -83,13 +83,13 @@ public class GameManager {
             var player = Bukkit.getPlayer(currentRoundParticipants.get(currentActionsThisRound));
             if (player == null) {
                 currentActionsThisRound++;
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startRound(), 30);
+                startRound();
                 return;
             }
 
             this.isMidRound = true;
 
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player), 30);
+            startAction(action == null ? Actions.values()[ThreadLocalRandom.current().nextInt(0, Actions.values().length)] : action, player);
         }
     }
 
@@ -123,8 +123,8 @@ public class GameManager {
             throw new RuntimeException(e);
         }
 
-        player.setGameMode(GameMode.ADVENTURE);
         player.teleport(actionLocation);
+        player.setGameMode(GameMode.ADVENTURE);
 
         Bukkit.getLogger().info(action.name());
 

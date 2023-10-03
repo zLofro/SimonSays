@@ -2,12 +2,15 @@ package me.lofro.utils.falseSpectator;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.destroystokyo.paper.event.player.PlayerTeleportEndGatewayEvent;
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.papermc.paper.event.player.PlayerNameEntityEvent;
 import lombok.Getter;
 import me.lofro.Main;
 import me.lofro.utils.ChatColorFormatter;
+import me.lofro.utils.item.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,6 +36,8 @@ public class FalseSpectator implements Listener {
             if (currentPlayer == null) return;
             player.sendActionBar(ChatColorFormatter.stringToComponent("&f&lJugador: " + currentPlayer.getName()));
         }, 0, 10).getTaskId());
+        player.getInventory().setItemInMainHand(new ItemBuilder(Material.STRUCTURE_VOID).setDisplayName(ChatColorFormatter.stringToString("&cEspera a tu turno.")).build());
+         player.getInventory().setItemInOffHand(new ItemBuilder(Material.STRUCTURE_VOID).setDisplayName(ChatColorFormatter.stringToString("&cEspera a tu turno.")).build());
         player.setGameMode(GameMode.CREATIVE);
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (!online.getUniqueId().equals(player.getUniqueId())) online.hidePlayer(Main.getInstance(), player);
@@ -43,6 +48,8 @@ public class FalseSpectator implements Listener {
          var taskID = falseSpectators.get(player.getUniqueId());
          if (taskID != null) Bukkit.getScheduler().cancelTask(taskID);
         falseSpectators.remove(player.getUniqueId());
+        player.getInventory().remove(Material.STRUCTURE_VOID);
+        player.getEquipment().setItemInOffHand(null);
         player.setGameMode(nextGamemode);
         Bukkit.getOnlinePlayers().forEach(online -> {
             if (!online.getUniqueId().equals(player.getUniqueId())) online.showPlayer(Main.getInstance(), player);
@@ -116,33 +123,32 @@ public class FalseSpectator implements Listener {
     }
 
     @EventHandler
-    private void onPlayerGateway(PlayerBedEnterEvent event) {
+    private void onPlayerBedEnter(PlayerBedEnterEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPlayerGateway(PlayerAttemptPickupItemEvent event) {
+    private void onPlayerPickup(PlayerAttemptPickupItemEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPlayerGateway(PlayerInteractAtEntityEvent event) {
+    private void onPlayerNameEntity(PlayerNameEntityEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPlayerGateway(PlayerNameEntityEvent event) {
+    private void onPlayerDropItem(PlayerDropItemEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPlayerGateway(PlayerDropItemEvent event) {
+    private void onPlayerItemFrame(PlayerItemFrameChangeEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
     }
-
 }
