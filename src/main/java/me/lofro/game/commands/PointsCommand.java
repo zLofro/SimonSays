@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
 
 @CommandAlias("puntos")
 @CommandPermission("admin.perm")
@@ -37,10 +38,13 @@ public class PointsCommand extends BaseCommand {
             var player = Bukkit.getOfflinePlayer(playerName);
             var uuid = player.getUniqueId();
 
-            var newPoints = gameManager.getPoints(connection, uuid) + points;
+            var newPoints = gameManager.getPlayerPoints().get(uuid) + points;
             gameManager.setPoints(connection, uuid, newPoints);
+            gameManager.getPlayerPoints().put(uuid, newPoints);
+            gameManager.getMembers().invalidateAll();
+
             sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han añadido " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
-        } catch (SQLException e) {
+        } catch (SQLException | ExecutionException e) {
             Bukkit.getLogger().info(e.getMessage());
             sender.sendMessage(ChatColorFormatter.stringToString("&cHa habido un error al ejecutar el comando. Revisa la consola."));
             throw new RuntimeException(e);
@@ -48,16 +52,19 @@ public class PointsCommand extends BaseCommand {
     }
 
     @Subcommand("eliminar")
-    @CommandCompletion(" puntos")
+    @CommandCompletion("nombre puntos")
     private void removePoints(CommandSender sender, String playerName, int points) {
         try {
             var player = Bukkit.getOfflinePlayer(playerName);
             var uuid = player.getUniqueId();
 
-            var newPoints = gameManager.getPoints(connection, uuid) - points;
+            var newPoints = gameManager.getPlayerPoints().get(uuid) - points;
             gameManager.setPoints(connection, uuid, newPoints);
+            gameManager.getPlayerPoints().put(uuid, newPoints);
+            gameManager.getMembers().invalidateAll();
+
             sender.sendMessage(ChatColorFormatter.stringToString("&aSe le han eliminado " + points + "&a puntos al jugador " + player.getName() + "&a. Ahora tiene " + newPoints + "&a puntos."));
-        } catch (SQLException e) {
+        } catch (SQLException | ExecutionException e) {
             Bukkit.getLogger().info(e.getMessage());
             sender.sendMessage(ChatColorFormatter.stringToString("&cHa habido un error al ejecutar el comando. Revisa la consola."));
             throw new RuntimeException(e);

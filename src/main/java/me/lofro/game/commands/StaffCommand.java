@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
 
 @CommandAlias("staffCommand")
 @CommandPermission("admin.perm")
@@ -29,11 +30,18 @@ public class StaffCommand extends BaseCommand {
     }
 
     @Subcommand("darRol")
-    private void setRole(CommandSender sender, @Flags("other") Player player, Roles role) {
+    @CommandCompletion("playerName ")
+    private void setRole(CommandSender sender, String playerName, Roles role) {
         try {
+            var player = Bukkit.getOfflinePlayer(playerName);
             sender.sendMessage(ChatColorFormatter.stringToString("&aSe ha cambiado el rol del jugador " + player.getName() + "&a a " + role.name() + "&a."));
             gameManager.setRole(connection, player.getUniqueId(), role);
-        } catch (SQLException e) {
+            if (role.equals(Roles.STAFF)) {
+                gameManager.getMembers().get(Roles.MEMBER).remove(player.getUniqueId());
+            } else {
+                gameManager.getMembers().get(Roles.MEMBER).add(player.getUniqueId());
+            }
+        } catch (SQLException | ExecutionException e) {
             Bukkit.getLogger().info(e.getMessage());
             sender.sendMessage("&cHa habido un error al ejecutar el comando. Revisa la consola.");
             throw new RuntimeException(e);
@@ -59,7 +67,7 @@ public class StaffCommand extends BaseCommand {
             sender.sendMessage(ChatColorFormatter.stringToString("&cYa hay una ronda iniciada."));
             return;
         }
-        if (!gameManager.getOnlineMembers().isEmpty()) {
+        if (!gameManager.getMembers().asMap().isEmpty()) {
             gameManager.startRound();
             sender.sendMessage(ChatColorFormatter.stringToString("&a¡La ronda ha comenzado!"));
         } else {
@@ -80,7 +88,7 @@ public class StaffCommand extends BaseCommand {
     @Subcommand("testAction")
     private void testAction(CommandSender sender, Actions action) {
         if (sender instanceof Player) {
-            if (!gameManager.getOnlineMembers().isEmpty()) {
+            if (!gameManager.getMembers().asMap().isEmpty()) {
                 gameManager.startRound(action);
                 sender.sendMessage(ChatColorFormatter.stringToString("&aEstas testeando la acción " + action.name() + "&a."));
             } else {

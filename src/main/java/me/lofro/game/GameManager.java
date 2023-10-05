@@ -1,5 +1,8 @@
 package me.lofro.game;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import me.lofro.Main;
 import me.lofro.game.listeners.GameListeners;
@@ -25,7 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public class GameManager {
 
@@ -62,6 +67,32 @@ public class GameManager {
     private @Getter int buttonTaskID = 0;
 
     private @Getter int currentButtonIndex = 0;
+
+    private final CacheLoader<UUID, Integer> playerPointsLoader = new CacheLoader<>() {
+        @Override
+        public @NotNull Integer load(@NotNull UUID key) {
+            try {
+                return getPoints(Main.getInstance().getConnection(), key);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
+
+    private final @Getter LoadingCache<UUID, Integer> playerPoints = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).build(playerPointsLoader);
+
+    private final CacheLoader<Roles, List<UUID>> membersLoader = new CacheLoader<>() {
+        @Override
+        public @NotNull List<UUID> load(@NotNull Roles key) {
+            try {
+                return getMembers(Main.getInstance().getConnection());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
+
+    private final @Getter LoadingCache<Roles, List<UUID>> members = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).build(membersLoader);
 
     public void startRound(Actions action) {
         if (isMidRound) {
@@ -373,10 +404,12 @@ public class GameManager {
 
                 if (won) {
                     try {
-                        setPoints(connection, currentPlayerUUID, getPoints(connection, currentPlayerUUID) + 1);
+                        var newPoints = playerPoints.get(currentPlayerUUID) + 1;
+                        setPoints(connection, currentPlayerUUID, newPoints);
+                        playerPoints.put(currentPlayerUUID, newPoints);
 
                         Bukkit.getOnlinePlayers().forEach(online -> online.showTitle(Title.title(ChatColorFormatter.stringToComponent(YMLConfig.getString("winTitlePointsMessage").replace("{jugador}", currentPlayer.getName())), ChatColorFormatter.stringToComponent(YMLConfig.getString("winSubtitlePointsMessage").replace("{jugador}", currentPlayer.getName())))));
-                    } catch (SQLException e) {
+                    } catch (SQLException | ExecutionException e) {
                         Bukkit.getLogger().info(e.getMessage());
                         throw new RuntimeException(e);
                     }
@@ -556,15 +589,13 @@ public class GameManager {
         return onlineMembers;
     }
 
-    public List<UUID> getTop() throws SQLException {
+    public List<UUID> getTop() throws SQLException, ExecutionException {
         Map<UUID, Integer> topPoints = new HashMap<>();
 
-        var connection = Main.getInstance().getConnection();
-
-        getMembers(connection).forEach(uuid -> {
+        members.get(Roles.MEMBER).forEach(uuid -> {
             try {
-                topPoints.put(uuid, getPoints(connection, uuid));
-            } catch (SQLException e) {
+                topPoints.put(uuid, playerPoints.get(uuid));
+            } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         });

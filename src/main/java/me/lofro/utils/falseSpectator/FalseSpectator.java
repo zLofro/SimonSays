@@ -57,6 +57,21 @@ public class FalseSpectator implements Listener {
     }
 
     @EventHandler
+    private void onjoin(PlayerJoinEvent event) {
+        var player = event.getPlayer();
+
+        if (falseSpectators.containsKey(player.getUniqueId())) {
+            Bukkit.getOnlinePlayers().forEach(online -> online.hidePlayer(Main.getInstance(), player));
+        }
+
+        Bukkit.getOnlinePlayers().forEach(online -> {
+            if (falseSpectators.containsKey(online.getUniqueId())) {
+                if (!online.getUniqueId().equals(player.getUniqueId())) player.hidePlayer(Main.getInstance(), online);
+            }
+        });
+    }
+
+    @EventHandler
     private void onBlockBreak(BlockBreakEvent event) {
         var player = event.getPlayer();
         if (falseSpectators.containsKey(player.getUniqueId())) event.setCancelled(true);
