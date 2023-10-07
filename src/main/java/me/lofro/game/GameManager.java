@@ -14,10 +14,7 @@ import me.lofro.utils.configuration.YMLConfig;
 import me.lofro.utils.falseSpectator.FalseSpectator;
 import me.lofro.utils.item.ItemBuilder;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.ItemFrame;
@@ -156,6 +153,7 @@ public class GameManager {
 
         player.teleport(actionLocation);
         player.setGameMode(GameMode.ADVENTURE);
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
 
         Bukkit.getLogger().info(action.name());
 
@@ -314,7 +312,7 @@ public class GameManager {
             }
         });
 
-        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, action.equals(Actions.FLOOR_IS_LAVA)), ThreadLocalRandom.current().nextInt(YMLConfig.getInt("minSecsPerAction"), YMLConfig.getInt("maxSecsPerAction")) * 20L).getTaskId();
+        this.taskLaterID = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> endAction(false, false, action.equals(Actions.FLOOR_IS_LAVA)), !action.equals(Actions.FLOOR_IS_LAVA) ? ThreadLocalRandom.current().nextInt(YMLConfig.getInt("minSecsPerAction"), YMLConfig.getInt("maxSecsPerAction")) * 20L : ThreadLocalRandom.current().nextInt(4, 8) * 20L).getTaskId();
     }
 
     public void endAction(boolean won, boolean commandMade, boolean isLava) {
